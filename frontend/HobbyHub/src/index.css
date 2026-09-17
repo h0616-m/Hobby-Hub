@@ -1,0 +1,448 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: #121212;
+  color: #ffffff;
+}
+
+button, input, select, textarea {
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  color: #ffffff;
+}
+
+button {
+  cursor: pointer;
+}
+
+.navbar {
+  background-color: #161616;
+  border-bottom: 1px solid #333333;
+  padding: 14px 24px;
+}
+
+.brand {
+  color: #ff4500;
+  font-weight: 700;
+  font-size: 22px;
+}
+
+.auth-page {
+  min-height: calc(100vh - 53px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.auth-card, .chatroom-card, .post-card, .post-detail-card, .modal-card {
+  background-color: #1e1e1e;
+  border: 1px solid #333333;
+  border-radius: 8px;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 380px;
+  padding: 24px;
+}
+
+.auth-tabs {
+  display: flex;
+  border-bottom: 1px solid #333333;
+  margin-bottom: 20px;
+}
+
+.auth-tab {
+  flex: 1;
+  background: none;
+  border: none;
+  color: #aaaaaa;
+  padding: 10px;
+}
+
+.auth-tab.active {
+  color: #ffffff;
+  border-bottom: 2px solid #ff4500;
+}
+
+.auth-form, .create-post-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.auth-form label, .create-post-form label, .post-meta, .chatroom-subtitle, .comment-time {
+  font-size: 12px;
+  color: #888888;
+}
+
+.auth-form input, .create-post-form input, .create-post-form select, .create-post-form textarea, .comment-form input {
+  background-color: #121212;
+  border: 1px solid #333333;
+  border-radius: 4px;
+  padding: 10px;
+}
+
+.auth-form input:focus, .create-post-form input:focus, .create-post-form select:focus, .create-post-form textarea:focus, .search-input:focus, .comment-form input:focus, .chat-input-form input:focus {
+  outline: none;
+  border-color: #ff4500;
+}
+
+.auth-error, .status-msg.error {
+  color: #ff4500;
+  font-size: 13px;
+}
+
+.btn-primary {
+  background-color: #ff4500;
+  border: none;
+  border-radius: 20px;
+  padding: 10px 16px;
+  font-weight: 700;
+}
+
+.btn-primary:disabled {
+  background-color: #333333;
+  color: #888888;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background-color: #242424;
+  border: 1px solid #333333;
+  border-radius: 20px;
+  padding: 10px 16px;
+}
+
+.hobbies-page {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 24px;
+  text-align: center;
+}
+
+.hobbies-subtitle, .post-excerpt, .post-body-detail, .comment-text {
+  color: #aaaaaa;
+}
+
+.hobbies-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.hobby-card {
+  background-color: #1e1e1e;
+  border: 2px solid #333333;
+  border-radius: 8px;
+  padding: 16px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.hobby-card.selected {
+  border-color: #ff4500;
+  background-color: rgba(255, 69, 0, 0.15);
+}
+
+.hobby-icon {
+  font-size: 28px;
+}
+
+.hobby-label, .chatroom-title {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.feed-layout {
+  display: flex;
+  gap: 28px;
+  padding: 24px 25% 24px 40px;
+  width: 100%;
+}
+
+.feed-sidebar {
+  order: 1;
+  position: sticky;
+  top: 24px;
+  width: 250px;
+  flex-shrink: 0;
+}
+
+.feed-main {
+  order: 2;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.feed-toolbar {
+  display: flex;
+  gap: 10px;
+}
+
+.search-input {
+  flex: 1;
+  background-color: #1e1e1e;
+  border: 1px solid #333333;
+  border-radius: 20px;
+  padding: 10px 16px;
+}
+
+.status-msg {
+  color: #888888;
+  text-align: center;
+  padding: 20px;
+}
+
+.status-msg.small {
+  font-size: 12px;
+  padding: 8px 0;
+}
+
+.chatroom-card {
+  padding: 16px;
+}
+
+.chatroom-card h2 {
+  font-size: 15px;
+  margin: 0 0 12px 0;
+}
+
+.chatroom-list, .comment-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.chatroom-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.chatroom-icon {
+  font-size: 20px;
+}
+
+.chatroom-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.post-card {
+  padding: 14px;
+  display: flex;
+  gap: 14px;
+  cursor: pointer;
+}
+
+.post-card:hover, .btn-secondary:hover {
+  border-color: #555555;
+}
+
+.post-vote-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.vote-btn, .comments-btn, .back-btn {
+  background: none;
+  border: none;
+  color: #888888;
+}
+
+.vote-btn.up.active {
+  color: #ff4500;
+}
+
+.vote-btn.down.active {
+  color: #7193ff;
+}
+
+.vote-count {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.post-body-column {
+  flex: 1;
+  min-width: 0;
+}
+
+.post-header {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 6px;
+}
+
+.post-community {
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.post-title, .post-title-detail {
+  margin: 0 0 6px 0;
+  font-size: 16px;
+}
+
+.post-title-detail {
+  font-size: 18px;
+}
+
+.comments-drawer {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #333333;
+}
+
+.comment-item, .chat-message {
+  background-color: #161616;
+  border-radius: 6px;
+  padding: 10px 12px;
+}
+
+.comment-author {
+  font-weight: 700;
+  font-size: 13px;
+  margin-right: 8px;
+}
+
+.comment-form {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.comment-form input {
+  flex: 1;
+  min-width: 0;
+  background-color: #121212;
+  border: 1px solid #333333;
+  border-radius: 4px;
+  padding: 10px 14px;
+  font-size: 14px;
+}
+
+.post-detail-page {
+  width: 100%;
+  max-width: none;
+  padding: 24px 10%;
+  text-align: left;
+}
+
+.post-detail-card {
+  padding: 20px;
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.comments-section h2 {
+  font-size: 16px;
+  margin-bottom: 12px;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-card {
+  padding: 24px;
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.chatroom-page {
+  width: 100%;
+  max-width: none;
+  height: calc(100vh - 53px);
+  display: flex;
+  flex-direction: column;
+  padding: 0 10%;
+}
+
+.chatroom-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 0;
+  border-bottom: 1px solid #333333;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 0;
+}
+
+.chat-input-form {
+  display: flex;
+  gap: 8px;
+  padding: 12px 0 20px 0;
+  border-top: 1px solid #333333;
+}
+
+.chat-input-form input {
+  flex: 1;
+  background-color: #1e1e1e;
+  border: 1px solid #333333;
+  border-radius: 20px;
+  padding: 10px 16px;
+}
+
+@media (max-width: 900px) {
+  .feed-layout {
+    flex-direction: column;
+    padding: 16px;
+  }
+  .feed-sidebar {
+    position: static;
+    width: 100%;
+    order: 2;
+  }
+  .feed-main {
+    width: 100%;
+    order: 1;
+  }
+  .hobbies-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .chatroom-page, .post-detail-page {
+    padding: 0 16px;
+  }
+}
