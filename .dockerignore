@@ -1,0 +1,8 @@
+# Ignore frontend files during backend Docker build
+frontend/
+node_modules/
+.git/
+.gitignore
+target/
+build/
+*.md
