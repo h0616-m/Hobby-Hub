@@ -1,2 +1,3 @@
-MERGE INTO users (username, password) KEY(username)
-    VALUES ('admin', 'admin123');
+INSERT INTO users (username, password)
+VALUES ('admin', 'admin123')
+ON CONFLICT (username) DO NOTHING;

@@ -8,7 +8,12 @@ import PostDetailPage from './PostDetailPage';
 import ChatroomPage from './ChatroomPage';
 
 function ProtectedRoute({ children }) {
-  const { user } = useApp();
+  const { user, authChecked } = useApp();
+
+  if (!authChecked) {
+    return <div style={{ padding: '40px', textAlign: 'center', color: '#666' }}>Verifying session…</div>;
+  }
+
   if (!user) return <Navigate to="/auth" replace />;
   return children;
 }

@@ -1,5 +1,15 @@
 CREATE TABLE IF NOT EXISTS users (
-                                     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-                                     username VARCHAR(50) NOT NULL UNIQUE,
-                                     password VARCHAR(255) NOT NULL
-    );
+    id BIGSERIAL PRIMARY KEY,
+    username VARCHAR(50) UNIQUE,
+    password VARCHAR(255),
+    email VARCHAR(255) UNIQUE,
+    google_id VARCHAR(255) UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS posts (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL REFERENCES users(id),
+    title VARCHAR(255) NOT NULL,
+    body TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);

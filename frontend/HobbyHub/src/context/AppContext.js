@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useCallback } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { getCurrentUser } from '../api/authApi';
 import { fetchPosts, createPost, votePost, addPostComment } from '../api/postsApi';
 import { fetchChatrooms, sendChatroomMessage } from '../api/chatroomsApi';
 
@@ -6,11 +7,34 @@ const AppContext = createContext(null);
 
 export function AppProvider({ children }) {
   const [user, setUser] = useState(null);
+  const [authChecked, setAuthChecked] = useState(false);
   const [hobbies, setHobbies] = useState([]);
   const [posts, setPosts] = useState([]);
   const [postsLoaded, setPostsLoaded] = useState(false);
   const [chatrooms, setChatrooms] = useState([]);
   const [chatroomsLoaded, setChatroomsLoaded] = useState(false);
+
+  useEffect(() => {
+    // Check if redirected from Google OAuth with ?user=...
+    const searchParams = new URLSearchParams(window.location.search);
+    const oauthUsername = searchParams.get('user');
+
+    if (oauthUsername) {
+      setUser(oauthUsername);
+      setAuthChecked(true);
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else {
+      getCurrentUser()
+        .then((data) => {
+          if (data && data.username) {
+            setUser(data.username);
+          }
+        })
+        .finally(() => {
+          setAuthChecked(true);
+        });
+    }
+  }, []);
 
   const login = useCallback((username) => setUser(username), []);
   const signup = useCallback((username) => setUser(username), []);
@@ -30,12 +54,14 @@ export function AppProvider({ children }) {
 
   const vote = useCallback(async (postId, direction) => {
     const updated = await votePost(postId, direction);
-    setPosts((prev) => prev.map((p) => (p.id === postId ? updated : p)));
+    if (updated) {
+      setPosts((prev) => prev.map((p) => (p.id === postId ? updated : p)));
+    }
   }, []);
 
   const addComment = useCallback(async (postId, text, author) => {
     const comment = await addPostComment(postId, text, author);
-    setPosts((prev) => prev.map((p) => (p.id !== postId ? p : { ...p, comments: [...p.comments, comment] })));
+    setPosts((prev) => prev.map((p) => (p.id !== postId ? p : { ...p, comments: [...(p.comments || []), comment] })));
   }, []);
 
   const addPost = useCallback(async (hobby, title, body, author) => {
@@ -49,7 +75,7 @@ export function AppProvider({ children }) {
   }, []);
 
   const value = {
-    user, hobbies, posts, postsLoaded, chatrooms, chatroomsLoaded,
+    user, authChecked, hobbies, posts, postsLoaded, chatrooms, chatroomsLoaded,
     login, signup, updateHobbies, vote, addComment, addPost, sendChatMessage,
     loadPosts, loadChatrooms,
   };

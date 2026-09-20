@@ -1,26 +1,42 @@
-const delay = (ms = 300) => new Promise((resolve) => setTimeout(resolve, ms));
+export async function loginRequest(emailOrUsername, password) {
+  const res = await fetch('/api/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ username: emailOrUsername, password }),
+  });
 
-const mockUsers = [
-  { email: "admin@gmail.com", username: "admin", password: "admin123" },
-];
-
-export async function loginRequest(email, password) {
-  await delay();
-  const found = mockUsers.find(
-    (u) => u.email === email && u.password === password,
-  );
-  if (!found) {
-    throw new Error("Invalid email or password.");
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.message || 'Login failed.');
   }
-  return { username: found.username, email: found.email };
+  return { username: data.username || emailOrUsername };
 }
 
 export async function signupRequest(email, username, password) {
-  await delay();
-  const exists = mockUsers.some((u) => u.email === email);
-  if (exists) {
-    throw new Error("An account with this email already exists.");
+  const res = await fetch('/api/signup', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ email, username, password }),
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.message || 'Signup failed.');
   }
-  mockUsers.push({ email, username, password });
-  return { username, email };
+  return { username: data.username || username };
+}
+
+export async function getCurrentUser() {
+  try {
+    const res = await fetch('/api/me', {
+      method: 'GET',
+      credentials: 'include',
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (err) {
+    return null;
+  }
 }
