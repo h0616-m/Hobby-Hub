@@ -1,8 +1,20 @@
-# Ignore frontend files during backend Docker build
+# Ignore frontend files
 frontend/
 node_modules/
+
+# Ignore documentation, media, and ER diagrams
+*.png
+*.jpg
+*.jpeg
+*.svg
+*.pdf
+*.drawio
+*.puml
+*.erd
+*.md
+
+# Ignore build artifacts and git files
 .git/
 .gitignore
 target/
 build/
-*.md
