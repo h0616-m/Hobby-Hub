@@ -72,7 +72,7 @@ public class SecurityConfig {
             session.setAttribute("username", actualUsername);
 
             String encodedUsername = URLEncoder.encode(actualUsername, StandardCharsets.UTF_8);
-            response.sendRedirect("http://localhost:3000/feed?user=" + encodedUsername);
+            response.sendRedirect("http://hobby-hub-nine.vercel.app/feed?user=" + encodedUsername);
         };
     }
 }
