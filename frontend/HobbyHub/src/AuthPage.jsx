@@ -141,7 +141,7 @@ export default function AuthPage() {
         </div>
 
         <a
-          href="http://localhost:8080/oauth2/authorization/google"
+          href="/oauth2/authorization/google"
           className="btn-secondary"
           style={{
             display: "flex",
