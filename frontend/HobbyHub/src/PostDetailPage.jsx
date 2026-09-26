@@ -1,21 +1,17 @@
-import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useApp } from './context/AppContext';
+import { useState } from "react";
+import { useParams } from "react-router-dom";
+import { useApp } from "./context/AppContext";
 
 export default function PostDetailPage() {
   const { id } = useParams();
-  const navigate = useNavigate();
   const { posts, vote, addComment, user } = useApp();
-  const [commentText, setCommentText] = useState('');
+  const [commentText, setCommentText] = useState("");
 
   const post = posts.find((p) => String(p.id) === String(id));
 
   if (!post) {
     return (
       <div className="post-detail-page">
-        <button type="button" className="back-btn" onClick={() => navigate('/feed')}>
-          ← Back to Feed
-        </button>
         <p className="status-msg">Post not found.</p>
       </div>
     );
@@ -24,21 +20,18 @@ export default function PostDetailPage() {
   const handleCommentSubmit = (e) => {
     e.preventDefault();
     if (!commentText.trim()) return;
-    addComment(post.id, commentText.trim(), user || 'you');
-    setCommentText('');
+    addComment(post.id, commentText.trim(), user || "you");
+    setCommentText("");
   };
 
   return (
     <div className="post-detail-page">
-      <button type="button" className="back-btn" onClick={() => navigate('/feed')}>
-        ← Back to Feed
-      </button>
       <div className="post-detail-card">
         <div className="post-vote-column">
           <button
             type="button"
-            className={post.userVote === 'up' ? 'vote-btn up active' : 'vote-btn up'}
-            onClick={() => vote(post.id, 'up')}
+            className={post.userVote === "up" ? "vote-btn up active" : "vote-btn up"}
+            onClick={() => vote(post.id, "up")}
             aria-label="Upvote"
           >
             ▲
@@ -46,8 +39,8 @@ export default function PostDetailPage() {
           <span className="vote-count">{post.upvotes}</span>
           <button
             type="button"
-            className={post.userVote === 'down' ? 'vote-btn down active' : 'vote-btn down'}
-            onClick={() => vote(post.id, 'down')}
+            className={post.userVote === "down" ? "vote-btn down active" : "vote-btn down"}
+            onClick={() => vote(post.id, "down")}
             aria-label="Downvote"
           >
             ▼

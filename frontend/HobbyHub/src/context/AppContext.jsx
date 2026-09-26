@@ -1,44 +1,48 @@
-import { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { getCurrentUser } from '../api/authApi';
-import { fetchPosts, createPost, votePost, addPostComment } from '../api/postsApi';
-import { fetchChatrooms, sendChatroomMessage } from '../api/chatroomsApi';
+import { createContext, useContext, useState, useCallback, useEffect } from "react";
+import { fetchPosts, createPost, votePost, addPostComment } from "../api/postsApi";
+import { fetchChatrooms, sendChatroomMessage } from "../api/chatroomsApi";
 
 const AppContext = createContext(null);
 
+function readStored(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 export function AppProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [authChecked, setAuthChecked] = useState(false);
-  const [hobbies, setHobbies] = useState([]);
+  const [user, setUser] = useState(() => readStored("hobbyhub_user", null));
+  const [hobbies, setHobbies] = useState(() => readStored("hobbyhub_hobbies", []));
   const [posts, setPosts] = useState([]);
   const [postsLoaded, setPostsLoaded] = useState(false);
   const [chatrooms, setChatrooms] = useState([]);
   const [chatroomsLoaded, setChatroomsLoaded] = useState(false);
 
   useEffect(() => {
-    // Check if redirected from Google OAuth with ?user=...
-    const searchParams = new URLSearchParams(window.location.search);
-    const oauthUsername = searchParams.get('user');
+    localStorage.setItem("hobbyhub_user", JSON.stringify(user));
+  }, [user]);
 
-    if (oauthUsername) {
-      setUser(oauthUsername);
-      setAuthChecked(true);
-      window.history.replaceState({}, document.title, window.location.pathname);
-    } else {
-      getCurrentUser()
-        .then((data) => {
-          if (data && data.username) {
-            setUser(data.username);
-          }
-        })
-        .finally(() => {
-          setAuthChecked(true);
-        });
-    }
-  }, []);
+  useEffect(() => {
+    localStorage.setItem("hobbyhub_hobbies", JSON.stringify(hobbies));
+  }, [hobbies]);
 
   const login = useCallback((username) => setUser(username), []);
   const signup = useCallback((username) => setUser(username), []);
   const updateHobbies = useCallback((selected) => setHobbies(selected), []);
+
+  const logout = useCallback(() => {
+    setUser(null);
+    setHobbies([]);
+    setPosts([]);
+    setPostsLoaded(false);
+    setChatrooms([]);
+    setChatroomsLoaded(false);
+    localStorage.removeItem("hobbyhub_user");
+    localStorage.removeItem("hobbyhub_hobbies");
+  }, []);
 
   const loadPosts = useCallback(async () => {
     const data = await fetchPosts();
@@ -54,14 +58,12 @@ export function AppProvider({ children }) {
 
   const vote = useCallback(async (postId, direction) => {
     const updated = await votePost(postId, direction);
-    if (updated) {
-      setPosts((prev) => prev.map((p) => (p.id === postId ? updated : p)));
-    }
+    setPosts((prev) => prev.map((p) => (p.id === postId ? updated : p)));
   }, []);
 
   const addComment = useCallback(async (postId, text, author) => {
     const comment = await addPostComment(postId, text, author);
-    setPosts((prev) => prev.map((p) => (p.id !== postId ? p : { ...p, comments: [...(p.comments || []), comment] })));
+    setPosts((prev) => prev.map((p) => (p.id !== postId ? p : { ...p, comments: [...p.comments, comment] })));
   }, []);
 
   const addPost = useCallback(async (hobby, title, body, author) => {
@@ -75,8 +77,8 @@ export function AppProvider({ children }) {
   }, []);
 
   const value = {
-    user, authChecked, hobbies, posts, postsLoaded, chatrooms, chatroomsLoaded,
-    login, signup, updateHobbies, vote, addComment, addPost, sendChatMessage,
+    user, hobbies, posts, postsLoaded, chatrooms, chatroomsLoaded,
+    login, signup, logout, updateHobbies, vote, addComment, addPost, sendChatMessage,
     loadPosts, loadChatrooms,
   };
 
@@ -85,6 +87,6 @@ export function AppProvider({ children }) {
 
 export function useApp() {
   const ctx = useContext(AppContext);
-  if (!ctx) throw new Error('useApp must be used within AppProvider');
+  if (!ctx) throw new Error("useApp must be used within AppProvider");
   return ctx;
 }

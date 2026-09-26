@@ -1,24 +1,22 @@
-import { useState, useRef, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useApp } from './context/AppContext';
+import { useState, useRef, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import { useApp } from "./context/AppContext";
 
 export default function ChatroomPage() {
   const { id } = useParams();
-  const navigate = useNavigate();
   const { chatrooms, sendChatMessage, user } = useApp();
-  const [text, setText] = useState('');
+  const [text, setText] = useState("");
   const messagesEndRef = useRef(null);
 
   const room = chatrooms.find((c) => c.id === id);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ block: 'end' });
+    messagesEndRef.current?.scrollIntoView({ block: "end" });
   }, [room?.messages?.length]);
 
   if (!room) {
     return (
       <div className="chatroom-page">
-        <button type="button" className="back-btn" onClick={() => navigate('/feed')}>← Back to Feed</button>
         <p className="status-msg">Chatroom not found.</p>
       </div>
     );
@@ -27,14 +25,13 @@ export default function ChatroomPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!text.trim()) return;
-    setText('');
-    await sendChatMessage(room.id, text.trim(), user || 'you');
+    setText("");
+    await sendChatMessage(room.id, text.trim(), user || "you");
   };
 
   return (
     <div className="chatroom-page">
       <div className="chatroom-header">
-        <button type="button" className="back-btn" onClick={() => navigate('/feed')}>← Back to Feed</button>
         <span className="chatroom-icon">{room.icon}</span>
         <h1>{room.title}</h1>
       </div>

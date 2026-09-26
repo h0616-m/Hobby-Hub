@@ -446,3 +446,56 @@ button {
     padding: 0 16px;
   }
 }
+
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.navbar-right {
+  position: relative;
+}
+
+.nav-icon-btn {
+  background: none;
+  border: none;
+  color: #ffffff;
+  font-size: 18px;
+  text-decoration: none;
+  padding: 4px 6px;
+  border-radius: 6px;
+  line-height: 1;
+}
+
+.nav-icon-btn:hover {
+  background-color: #242424;
+}
+
+.profile-dropdown {
+  position: absolute;
+  right: 0;
+  top: 36px;
+  background-color: #1e1e1e;
+  border: 1px solid #333333;
+  border-radius: 8px;
+  padding: 12px;
+  min-width: 160px;
+  z-index: 50;
+}
+
+.profile-username {
+  margin: 0 0 10px 0;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.logout-btn {
+  width: 100%;
+}
