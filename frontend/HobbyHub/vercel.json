@@ -6,7 +6,7 @@
     },
     {
       "source": "/oauth2/:path*",
-      "destination": "https://hobby-hub-o8zd.onrender.com/oauth2/:path*"  #dont send to oauth
+      "destination": "https://hobby-hub-o8zd.onrender.com/oauth2/:path*"
     },
     {
       "source": "/login/oauth2/:path*",
@@ -18,6 +18,3 @@
     }
   ]
 }
-
-#also after signup page route to HobbiesSelect page
-#also login and signup doesnt work :(

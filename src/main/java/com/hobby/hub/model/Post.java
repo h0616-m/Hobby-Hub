@@ -1,6 +1,7 @@
 package com.hobby.hub.model;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class Post {
     private Long id;
@@ -9,6 +10,9 @@ public class Post {
     private String title;
     private String body;
     private LocalDateTime createdAt;
+    private int upvotes;
+    private String userVote;
+    private List<Comment> comments;
 
     public Post() {}
 
@@ -29,4 +33,13 @@ public class Post {
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public int getUpvotes() { return upvotes; }
+    public void setUpvotes(int upvotes) { this.upvotes = upvotes; }
+
+    public String getUserVote() { return userVote; }
+    public void setUserVote(String userVote) { this.userVote = userVote; }
+
+    public List<Comment> getComments() { return comments; }
+    public void setComments(List<Comment> comments) { this.comments = comments; }
 }
