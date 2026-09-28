@@ -464,38 +464,46 @@ button {
 }
 
 .nav-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-btn {
   background: none;
   border: none;
-  color: #ffffff;
-  font-size: 18px;
-  text-decoration: none;
-  padding: 4px 6px;
-  border-radius: 6px;
-  line-height: 1;
+  padding: 0;
+  border-radius: 50%;
+  line-height: 0;
 }
 
-.nav-icon-btn:hover {
-  background-color: #242424;
+.profile-img {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #333333;
+  display: block;
 }
 
-.profile-dropdown {
-  position: absolute;
-  right: 0;
-  top: 36px;
-  background-color: #1e1e1e;
-  border: 1px solid #333333;
-  border-radius: 8px;
-  padding: 12px;
-  min-width: 160px;
-  z-index: 50;
+.profile-img.small {
+  width: 28px;
+  height: 28px;
+}
+
+.profile-btn:hover .profile-img {
+  border-color: #ff4500;
+}
+
+.profile-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
 }
 
 .profile-username {
-  margin: 0 0 10px 0;
+  margin: 0;
   font-weight: 700;
   font-size: 14px;
-}
-
-.logout-btn {
-  width: 100%;
 }

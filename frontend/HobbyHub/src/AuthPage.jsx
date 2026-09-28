@@ -14,7 +14,7 @@ export default function AuthPage() {
   const [submitting, setSubmitting] = useState(false);
   const { user, login, signup } = useApp();
   const navigate = useNavigate();
-
+  
   useEffect(() => {
     if (user) {
       navigate("/feed", { replace: true });
