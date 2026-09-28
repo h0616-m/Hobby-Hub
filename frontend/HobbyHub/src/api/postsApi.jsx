@@ -40,9 +40,32 @@ export async function createPost(hobby, title, body, author) {
 }
 
 export async function votePost(postId, direction) {
-  return null;
+  const res = await fetch(`/api/posts/${postId}/vote`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ direction }),
+  });
+  if (!res.ok) return null;
+  const p = await res.json();
+  return {
+    ...p,
+    hobby: p.hobby || 'Coding',
+    subreddit: p.hobby || 'Coding',
+    comments: p.comments || [],
+  };
 }
 
 export async function addPostComment(postId, text, author) {
-  return { id: `c${Date.now()}`, author, text };
+  const res = await fetch(`/api/posts/${postId}/comments`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ text }),
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.message || 'Failed to add comment');
+  }
+  return await res.json();
 }

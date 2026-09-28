@@ -445,6 +445,7 @@ button {
   .chatroom-page, .post-detail-page {
     padding: 0 16px;
   }
+<<<<<<< HEAD
 }
 
 .navbar {
@@ -506,4 +507,6 @@ button {
   margin: 0;
   font-weight: 700;
   font-size: 14px;
+=======
+>>>>>>> bec455c3a3b97b9caa0d6f808d4a3c8b95ce007c
 }

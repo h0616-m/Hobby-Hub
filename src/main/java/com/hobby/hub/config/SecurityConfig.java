@@ -43,7 +43,12 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(List.of("http://localhost:*", "http://127.0.0.1:*"));
+        config.setAllowedOriginPatterns(List.of(
+                "http://localhost:*",
+                "http://127.0.0.1:*",
+                "https://hobby-hub-nine.vercel.app",
+                "https://hobby-hub-o8zd.onrender.com"
+        ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
@@ -72,7 +77,7 @@ public class SecurityConfig {
             session.setAttribute("username", actualUsername);
 
             String encodedUsername = URLEncoder.encode(actualUsername, StandardCharsets.UTF_8);
-            response.sendRedirect("http://hobby-hub-nine.vercel.app/feed?user=" + encodedUsername);
+            response.sendRedirect("https://hobby-hub-nine.vercel.app/feed?user=" + encodedUsername);
         };
     }
 }
