@@ -20,7 +20,6 @@ export default function PostDetailPage() {
   const [commentText, setCommentText] = useState('');
   const [loading, setLoading] = useState(!postsLoaded);
 
-  // Load posts if user directly refreshed on this URL
   useEffect(() => {
     let isMounted = true;
     if (!postsLoaded) {
@@ -38,7 +37,6 @@ export default function PostDetailPage() {
     };
   }, [postsLoaded, loadPosts]);
 
-  // Safe ID comparison (handling number vs string)
   const post = posts.find((p) => String(p.id) === String(id));
 
   const userObj = typeof user === 'object' && user !== null ? user : { username: user };
@@ -107,7 +105,6 @@ export default function PostDetailPage() {
   return (
     <div className="post-detail-page">
       <div className="post-detail-card">
-        {/* Voting Column */}
         <div className="post-vote-column">
           <button
             type="button"
@@ -126,7 +123,6 @@ export default function PostDetailPage() {
           </button>
         </div>
 
-        {/* Content Column */}
         <div className="post-body-column">
           <div className="post-header-top-row">
             <div className="post-header">
@@ -161,7 +157,6 @@ export default function PostDetailPage() {
         </div>
       </div>
 
-      {/* Comments Section */}
       <section className="comments-section">
         <h2>Comments ({commentsList.length})</h2>
 
