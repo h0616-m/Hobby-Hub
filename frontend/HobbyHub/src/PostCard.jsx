@@ -1,98 +1,124 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from './context/AppContext';
 
 export default function PostCard({ post }) {
-  const { vote, addComment, user } = useApp();
-  const [showComments, setShowComments] = useState(false);
-  const [commentText, setCommentText] = useState('');
+  const { vote, user, isAdmin, deletePost, banUser } = useApp();
+  const [showAdminMenu, setShowAdminMenu] = useState(false);
+  const menuRef = useRef(null);
   const navigate = useNavigate();
 
-  const handleUpvote = (e) => {
+  // Bulletproof admin determination
+  const userObj = typeof user === 'object' && user !== null ? user : { username: user };
+  const effectiveIsAdmin = Boolean(
+    isAdmin ||
+    user === 'admin' ||
+    userObj?.isAdmin === true ||
+    userObj?.role === 'ADMIN' ||
+    userObj?.username?.toLowerCase() === 'admin' ||
+    userObj?.email?.toLowerCase() === 'admin@gmail.com'
+  );
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setShowAdminMenu(false);
+      }
+    }
+    if (showAdminMenu) {
+      document.addEventListener('click', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [showAdminMenu]);
+
+  const handleDelete = async (e) => {
     e.stopPropagation();
-    vote(post.id, 'up');
+    setShowAdminMenu(false);
+    await deletePost(post.id);
   };
 
-  const handleDownvote = (e) => {
+  const handleBan = async (e) => {
     e.stopPropagation();
-    vote(post.id, 'down');
+    setShowAdminMenu(false);
+    if (!post.author || post.author.toLowerCase() === 'admin') return;
+    await banUser(post.author);
   };
 
-  const handleToggleComments = (e) => {
-    e.stopPropagation();
-    setShowComments((s) => !s);
-  };
-
-  const handleCommentSubmit = (e) => {
-    e.stopPropagation();
-    e.preventDefault();
-    if (!commentText.trim()) return;
-    addComment(post.id, commentText.trim(), user || 'you');
-    setCommentText('');
-  };
-
-  const handleCardClick = () => {
-    navigate(`/post/${post.id}`);
-  };
+  const commentsCount = Array.isArray(post.comments) ? post.comments.length : (post.commentCount || 0);
 
   return (
-    <div className="post-card" onClick={handleCardClick}>
-      <div className="post-vote-column" onClick={(e) => e.stopPropagation()}>
-        <button
-          type="button"
-          className={post.userVote === 'up' ? 'vote-btn up active' : 'vote-btn up'}
-          onClick={handleUpvote}
-          aria-label="Upvote"
-        >
-          ▲
-        </button>
-        <span className="vote-count">{post.upvotes}</span>
-        <button
-          type="button"
-          className={post.userVote === 'down' ? 'vote-btn down active' : 'vote-btn down'}
-          onClick={handleDownvote}
-          aria-label="Downvote"
-        >
-          ▼
-        </button>
-      </div>
-      <div className="post-body-column">
-        <div className="post-header">
-          <span className="post-community">{post.subreddit}</span>
-          <span className="post-meta">Posted by {post.author}</span>
-        </div>
-        <h3 className="post-title">{post.title}</h3>
-        <p className="post-excerpt">{post.body}</p>
-        <div className="post-actions">
-          <button type="button" className="comments-btn" onClick={handleToggleComments}>
-            💬 {post.comments.length} Comments
+    <div className="feed-post-row-wrapper">
+      <div className="post-card" onClick={() => navigate(`/post/${post.id}`)}>
+        {/* Left Vertical Voting Column */}
+        <div className="post-vote-column" onClick={(e) => e.stopPropagation()}>
+          <button
+            type="button"
+            className={`vote-btn ${post.userVote === 'up' ? 'up active' : ''}`}
+            onClick={() => vote(post.id, 'up')}
+          >
+            ▲
+          </button>
+          <span className="vote-count">{post.upvotes ?? 0}</span>
+          <button
+            type="button"
+            className={`vote-btn ${post.userVote === 'down' ? 'down active' : ''}`}
+            onClick={() => vote(post.id, 'down')}
+          >
+            ▼
           </button>
         </div>
-        {showComments && (
-          <div className="comments-drawer" onClick={(e) => e.stopPropagation()}>
-            <ul className="comment-list">
-              {post.comments.map((c) => (
-                <li key={c.id} className="comment-item">
-                  <span className="comment-author">{c.author}</span>
-                  <p className="comment-text">{c.text}</p>
-                </li>
-              ))}
-            </ul>
-            <form className="comment-form" onSubmit={handleCommentSubmit}>
-              <input
-                type="text"
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                placeholder="Add a comment…"
-                aria-label="Add a comment"
-              />
-              <button type="submit" className="btn-primary">
-                Post
+
+        {/* Post Body */}
+        <div className="post-body-column">
+          <div className="post-header-top-row">
+            <div className="post-header">
+              <span className="post-community">{post.hobby}</span>
+              <span className="post-author-text">Posted by {post.author || 'user'}</span>
+            </div>
+
+            {/* Admin 3 Dots Button */}
+            {effectiveIsAdmin && (
+              <button
+                type="button"
+                className="admin-dots-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowAdminMenu((prev) => !prev);
+                }}
+                title=""
+              >
+                •••
               </button>
-            </form>
+            )}
           </div>
-        )}
+
+          <h3 className="post-title">{post.title}</h3>
+
+          {post.body && <p className="post-excerpt">{post.body}</p>}
+
+          <div className="comments-btn">
+            💬 {commentsCount} Comments
+          </div>
+        </div>
       </div>
+
+      {/* Admin Action Box */}
+      {effectiveIsAdmin && showAdminMenu && (
+        <div
+          ref={menuRef}
+          className="admin-actions-card"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button type="button" className="admin-action-btn" onClick={handleDelete}>
+            Delete Post
+          </button>
+          <button type="button" className="admin-action-btn" onClick={handleBan}>
+            Ban User
+          </button>
+        </div>
+      )}
     </div>
   );
 }

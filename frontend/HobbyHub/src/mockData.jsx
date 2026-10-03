@@ -1,4 +1,4 @@
-export const MOCK_POSTS = [
+const DEV_POSTS = [
   { id: '1', hobby: 'Coding', subreddit: 'Coding', author: 'coder_pro', title: "What's your favorite VS Code extension?", body: 'I just discovered a productivity extension that changed how I write code. Curious what everyone else is using.', upvotes: 128, userVote: null, comments: [
     { id: 'c1', author: 'devgirl', text: 'Prettier + ESLint combo is a must.' },
     { id: 'c2', author: 'js_ninja', text: 'GitLens has saved me so much time.' },
@@ -23,7 +23,7 @@ export const MOCK_POSTS = [
   { id: '8', hobby: 'Gaming', subreddit: 'Gaming', author: 'retro_zane', title: 'Replaying old classics this weekend', body: 'Nothing beats revisiting the games that got you into gaming in the first place.', upvotes: 47, userVote: null, comments: [] },
 ];
 
-export const MOCK_CHATROOMS = [
+const DEV_CHATROOMS = [
   { id: 'Coding', icon: '💻', title: 'Coding', subtitle: 'Talk code with devs', messages: [
     { id: 'm1', author: 'coder_pro', text: 'Anyone using Rust for backend now?' },
     { id: 'm2', author: 'js_ninja', text: 'Still on Node here, works fine.' },
@@ -44,3 +44,12 @@ export const MOCK_CHATROOMS = [
     { id: 'm1', author: 'iron_will', text: "Leg day tomorrow, who's in?" },
   ] },
 ];
+
+// Returns mock data in dev, strictly empty array in production build
+const isDev = Boolean(
+  (typeof import.meta !== 'undefined' && import.meta.env?.DEV) ||
+  (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development')
+);
+
+export const MOCK_POSTS = isDev ? DEV_POSTS : [];
+export const MOCK_CHATROOMS = isDev ? DEV_CHATROOMS : [];
