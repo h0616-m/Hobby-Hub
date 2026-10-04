@@ -9,21 +9,17 @@ async function parseJsonSafely(res) {
 }
 
 export async function deletePostRequest(postId) {
-  try {
-    const res = await fetch(`/api/admin/posts/${postId}`, {
-      method: 'DELETE',
-      credentials: 'include',
-    });
-    if (!res.ok) {
-      const err = await parseJsonSafely(res);
-      throw new Error(err?.message || 'Failed to delete post');
-    }
-    return true;
-  } catch {
-    // Development offline fallback
-    console.warn('Backend unavailable, deleting post locally:', postId);
-    return true;
+  const response = await fetch(`/api/admin/posts/${postId}`, {
+    method: "DELETE",
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || "Failed to delete post");
   }
+
+  return true;
 }
 
 export async function banUserRequest(username) {
