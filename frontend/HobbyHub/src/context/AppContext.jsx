@@ -172,18 +172,9 @@ export function AppProvider({ children }) {
     setPosts((prev) => prev.filter((p) => String(p.id) !== String(postId)));
   }, []);
 
-  const banUser = useCallback(async (targetUsername) => {
-    await banUserRequest(targetUsername);
-    try {
-      const banned = JSON.parse(localStorage.getItem("hobbyhub_banned_users") || "[]");
-      if (!banned.includes(targetUsername.toLowerCase())) {
-        banned.push(targetUsername.toLowerCase());
-        localStorage.setItem("hobbyhub_banned_users", JSON.stringify(banned));
-      }
-    } catch {
-      // storage exception safety
-    }
-    setPosts((prev) => prev.filter((p) => p.author?.toLowerCase() !== targetUsername.toLowerCase()));
+  const banUser = useCallback(async (userId) => {
+    await banUserRequest(userId);
+    setPosts((prev) => prev.filter((p) => p.userId !== userId));
   }, []);
 
   const sendChatMessage = useCallback(async (chatroomId, text, author) => {

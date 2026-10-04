@@ -1,56 +1,29 @@
-async function parseJsonSafely(res) {
+async function readError(res, fallback) {
   const text = await res.text();
-  if (!text || !text.trim()) return null;
+  if (!text || !text.trim()) return fallback;
   try {
-    return JSON.parse(text);
+    return JSON.parse(text).message || fallback;
   } catch {
-    return { message: text };
+    return text;
   }
 }
 
 export async function deletePostRequest(postId) {
-  const response = await fetch(`/api/admin/posts/${postId}`, {
+  const res = await fetch(`/api/admin/posts/${postId}`, {
     method: "DELETE",
     credentials: "include",
   });
 
-  if (!response.ok) {
-    const message = await response.text();
-    throw new Error(message || "Failed to delete post");
-  }
-
+  if (!res.ok) throw new Error(await readError(res, "Failed to delete post"));
   return true;
 }
 
-export async function banUserRequest(username) {
-  try {
-    const res = await fetch(`/api/admin/users/${username}/ban`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-    });
-    if (!res.ok) {
-      const err = await parseJsonSafely(res);
-      throw new Error(err?.message || 'Failed to ban user');
-    }
-    return true;
-  } catch {
-    // Development offline fallback
-    console.warn('Backend unavailable, banning user locally:', username);
-    return true;
-  }
-}
+export async function banUserRequest(userId) {
+  const res = await fetch(`/api/admin/users/${userId}/ban`, {
+    method: "POST",
+    credentials: "include",
+  });
 
-export async function checkBannedStatus(username) {
-  try {
-    const res = await fetch(`/api/users/${username}/status`, {
-      method: 'GET',
-      credentials: 'include',
-    });
-    if (!res.ok) return false;
-    const data = await parseJsonSafely(res);
-    return Boolean(data?.banned || data?.isBanned);
-  } catch {
-    return false;
-  }
+  if (!res.ok) throw new Error(await readError(res, "Failed to ban user"));
+  return true;
 }

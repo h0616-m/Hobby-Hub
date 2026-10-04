@@ -70,8 +70,8 @@ export default function PostDetailPage() {
   };
 
   const handleBan = async () => {
-    if (!post || !post.author || post.author.toLowerCase() === 'admin') return;
-    await banUser(post.author);
+    if (!post || !post.userId || post.author?.toLowerCase() === 'admin') return;
+    await banUser(post.userId);
     navigate('/feed');
   };
 

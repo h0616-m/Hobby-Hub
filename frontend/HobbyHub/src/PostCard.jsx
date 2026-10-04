@@ -42,8 +42,8 @@ export default function PostCard({ post }) {
   const handleBan = async (e) => {
     e.stopPropagation();
     setShowAdminMenu(false);
-    if (!post.author || post.author.toLowerCase() === 'admin') return;
-    await banUser(post.author);
+    if (!post.userId || post.author?.toLowerCase() === 'admin') return;
+    await banUser(post.userId);
   };
 
   const commentsCount = Array.isArray(post.comments) ? post.comments.length : (post.commentCount || 0);
