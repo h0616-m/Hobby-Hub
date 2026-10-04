@@ -11,6 +11,7 @@ export default function FeedPage() {
     chatrooms, chatroomsLoaded, loadChatrooms,
     hobbies, updateHobbies, addPost, user,
   } = useApp();
+
   const [status, setStatus] = useState(postsLoaded ? 'ready' : 'loading');
   const [search, setSearch] = useState('');
   const [showHobbiesModal, setShowHobbiesModal] = useState(false);
@@ -36,9 +37,9 @@ export default function FeedPage() {
     const q = search.trim().toLowerCase();
     if (q) {
       list = list.filter((p) =>
-        p.hobby.toLowerCase().includes(q) ||
-        p.title.toLowerCase().includes(q) ||
-        p.body.toLowerCase().includes(q)
+        (p.hobby && p.hobby.toLowerCase().includes(q)) ||
+        (p.title && p.title.toLowerCase().includes(q)) ||
+        (p.body && p.body.toLowerCase().includes(q))
       );
     }
     return list;
@@ -47,7 +48,8 @@ export default function FeedPage() {
   const joinedChatrooms = chatrooms.filter((c) => hobbies.includes(c.id));
 
   const handleCreatePost = async (hobby, title, body) => {
-    await addPost(hobby, title, body, user || 'you');
+    const authorName = (typeof user === 'object' ? user?.username : user) || 'you';
+    await addPost(hobby, title, body, authorName);
     if (!hobbies.includes(hobby)) {
       updateHobbies([...hobbies, hobby]);
     }
@@ -70,8 +72,12 @@ export default function FeedPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          <button type="button" className="btn-secondary" onClick={() => setShowHobbiesModal(true)}>More Hobbies</button>
-          <button type="button" className="btn-primary" onClick={() => setShowCreateModal(true)}>Create Post</button>
+          <button type="button" className="btn-secondary" onClick={() => setShowHobbiesModal(true)}>
+            More Hobbies
+          </button>
+          <button type="button" className="btn-primary" onClick={() => setShowCreateModal(true)}>
+            Create Post
+          </button>
         </div>
 
         {status === 'loading' && <p className="status-msg">Loading posts…</p>}
@@ -79,7 +85,9 @@ export default function FeedPage() {
         {status === 'ready' && visiblePosts.length === 0 && (
           <p className="status-msg">No posts found for your selected hobbies.</p>
         )}
-        {status === 'ready' && visiblePosts.map((post) => <PostCard key={post.id} post={post} />)}
+        {status === 'ready' && visiblePosts.map((post) => (
+          <PostCard key={post.id} post={post} />
+        ))}
       </main>
 
       <aside className="feed-sidebar">

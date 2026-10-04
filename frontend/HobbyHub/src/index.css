@@ -22,6 +22,58 @@ button {
   background-color: #161616;
   border-bottom: 1px solid #333333;
   padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.navbar-right {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.nav-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: #ffffff;
+  font-size: 20px;
+}
+
+.profile-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  border-radius: 50%;
+  line-height: 0;
+}
+
+.profile-img {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #333333;
+  display: block;
+}
+
+.profile-img.small {
+  width: 28px;
+  height: 28px;
+}
+
+.profile-btn:hover .profile-img {
+  border-color: #ff4500;
 }
 
 .brand {
@@ -244,7 +296,15 @@ button {
   gap: 2px;
 }
 
+.feed-post-row-wrapper {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  width: 100%;
+}
+
 .post-card {
+  flex: 1;
   padding: 14px;
   display: flex;
   gap: 14px;
@@ -285,6 +345,14 @@ button {
 .post-body-column {
   flex: 1;
   min-width: 0;
+}
+
+/* Post header line container */
+.post-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
 }
 
 .post-header {
@@ -425,6 +493,53 @@ button {
   padding: 10px 16px;
 }
 
+/* Admin 3 Dots Button */
+.admin-dots-btn {
+  background: none;
+  border: none;
+  color: #aaaaaa;
+  font-size: 18px;
+  letter-spacing: 2px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+.admin-dots-btn:hover {
+  color: #ffffff;
+}
+
+/* Admin Side Actions Panel matching your red action buttons */
+.admin-actions-card {
+  width: 190px;
+  background-color: #1b1e2b;
+  border: 1px solid #2d303e;
+  border-radius: 6px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  flex-shrink: 0;
+}
+
+.admin-action-btn {
+  width: 100%;
+  padding: 10px;
+  background-color: #ff0f0f;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  text-align: center;
+}
+
+.admin-action-btn:hover {
+  opacity: 0.9;
+}
+
 @media (max-width: 900px) {
   .feed-layout {
     flex-direction: column;
@@ -439,10 +554,88 @@ button {
     width: 100%;
     order: 1;
   }
+  .feed-post-row-wrapper {
+    flex-direction: column;
+  }
+  .admin-actions-card {
+    width: 100%;
+  }
   .hobbies-grid {
     grid-template-columns: repeat(2, 1fr);
   }
   .chatroom-page, .post-detail-page {
     padding: 0 16px;
   }
+}
+
+.feed-post-row-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.post-header-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.post-author-text {
+  font-size: 12px;
+  color: #888888;
+}
+
+.admin-dots-btn {
+  background: none;
+  border: none;
+  color: #888888;
+  font-size: 18px;
+  letter-spacing: 2px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+.admin-dots-btn:hover {
+  color: #ffffff;
+}
+
+.admin-actions-card {
+  position: absolute;
+  top: 0;
+  left: calc(100% + 14px);
+  width: 190px;
+  background-color: #1e1e1e;
+  border: 1px solid #333333;
+  border-radius: 8px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  z-index: 50;
+}
+
+.admin-action-btn {
+  width: 100%;
+  padding: 10px;
+  background-color: #df1010;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  text-align: center;
+}
+
+.admin-action-btn:hover {
+  opacity: 0.9;
+}
+
+.back-btn {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
 }

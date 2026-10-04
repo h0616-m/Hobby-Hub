@@ -6,19 +6,28 @@ import HobbiesSelect from './HobbiesSelect';
 import FeedPage from './FeedPage';
 import PostDetailPage from './PostDetailPage';
 import ChatroomPage from './ChatroomPage';
+import BannedScreen from './BannedScreen';
 
 function ProtectedRoute({ children }) {
-  const { user, authChecked } = useApp();
+  const { user, authChecked, isBanned } = useApp();
 
   if (!authChecked) {
-    return <div style={{ padding: '40px', textAlign: 'center', color: '#666' }}>Verifying session…</div>;
+    return <div className="loading-spinner">Verifying session…</div>;
   }
 
   if (!user) return <Navigate to="/auth" replace />;
+  if (isBanned) return <BannedScreen />;
+
   return children;
 }
 
 function AppRoutes() {
+  const { user, isBanned } = useApp();
+
+  if (user && isBanned) {
+    return <BannedScreen />;
+  }
+
   return (
     <>
       <Navbar />
