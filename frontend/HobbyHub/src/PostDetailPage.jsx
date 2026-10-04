@@ -65,14 +65,22 @@ export default function PostDetailPage() {
 
   const handleDelete = async () => {
     if (!post) return;
-    await deletePost(post.id);
-    navigate('/feed');
+    try {
+      await deletePost(post.id);
+      navigate('/feed');
+    } catch (err) {
+      alert(err.message || 'Failed to delete post');
+    }
   };
 
   const handleBan = async () => {
     if (!post || !post.userId || post.author?.toLowerCase() === 'admin') return;
-    await banUser(post.userId);
-    navigate('/feed');
+    try {
+      await banUser(post.userId);
+      navigate('/feed');
+    } catch (err) {
+      alert(err.message || 'Failed to ban user');
+    }
   };
 
   if (loading) {

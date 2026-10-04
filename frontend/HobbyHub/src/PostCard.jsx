@@ -36,14 +36,22 @@ export default function PostCard({ post }) {
   const handleDelete = async (e) => {
     e.stopPropagation();
     setShowAdminMenu(false);
-    await deletePost(post.id);
+    try {
+      await deletePost(post.id);
+    } catch (err) {
+      alert(err.message || 'Failed to delete post');
+    }
   };
 
   const handleBan = async (e) => {
     e.stopPropagation();
     setShowAdminMenu(false);
     if (!post.userId || post.author?.toLowerCase() === 'admin') return;
-    await banUser(post.userId);
+    try {
+      await banUser(post.userId);
+    } catch (err) {
+      alert(err.message || 'Failed to ban user');
+    }
   };
 
   const commentsCount = Array.isArray(post.comments) ? post.comments.length : (post.commentCount || 0);

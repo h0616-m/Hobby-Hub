@@ -1,10 +1,5 @@
 const ADMIN_USERNAME = "admin";
 const ADMIN_EMAIL = "admin@gmail.com";
-const ADMIN_PASSWORD = "admin123";
-
-const CUSTOMER_USERNAME = "customer";
-const CUSTOMER_EMAIL = "customer@gmail.com";
-const CUSTOMER_PASSWORD = "customer123";
 
 async function parseJsonSafely(res) {
   const text = await res.text();
@@ -19,44 +14,7 @@ async function parseJsonSafely(res) {
 }
 
 export async function loginRequest(emailOrUsername, password) {
-  const identifier = (emailOrUsername || "").trim().toLowerCase();
   const pass = (password || "").trim();
-
-  // 1. Admin Master Bypass
-  if (
-    (identifier === ADMIN_USERNAME || identifier === ADMIN_EMAIL) &&
-    pass === ADMIN_PASSWORD
-  ) {
-    return {
-      username: ADMIN_USERNAME,
-      email: ADMIN_EMAIL,
-      role: "ADMIN",
-      isAdmin: true,
-    };
-  }
-
-  // Reject wrong password for admin
-  if (identifier === ADMIN_USERNAME || identifier === ADMIN_EMAIL) {
-    throw new Error("Invalid admin credentials.");
-  }
-
-  // 2. Customer Test Bypass (Standard User Privileges Only)
-  if (
-    (identifier === CUSTOMER_USERNAME || identifier === CUSTOMER_EMAIL) &&
-    pass === CUSTOMER_PASSWORD
-  ) {
-    return {
-      username: CUSTOMER_USERNAME,
-      email: CUSTOMER_EMAIL,
-      role: "USER",
-      isAdmin: false,
-    };
-  }
-
-  // Reject wrong password for test customer
-  if (identifier === CUSTOMER_USERNAME || identifier === CUSTOMER_EMAIL) {
-    throw new Error("Invalid customer credentials.");
-  }
 
   // 3. Backend & Database Authentication
   let res;
@@ -68,7 +26,7 @@ export async function loginRequest(emailOrUsername, password) {
       body: JSON.stringify({ username: emailOrUsername.trim(), password: pass }),
     });
   } catch (networkErr) {
-    throw new Error("Server or database is offline. Use the admin or customer credentials for testing.");
+    throw new Error("Server is unreachable. Please try again.");
   }
 
   const data = await parseJsonSafely(res);
@@ -94,19 +52,6 @@ export async function signupRequest(email, username, password) {
     throw new Error("This username or email is reserved by system administration.");
   }
 
-  // 2. Customer Test Bypass for Signup
-  if (
-    (cleanUsername === CUSTOMER_USERNAME || cleanEmail === CUSTOMER_EMAIL) &&
-    pass === CUSTOMER_PASSWORD
-  ) {
-    return {
-      username: CUSTOMER_USERNAME,
-      email: CUSTOMER_EMAIL,
-      role: "USER",
-      isAdmin: false,
-    };
-  }
-
   // 3. Backend Registration
   let res;
   try {
@@ -121,7 +66,7 @@ export async function signupRequest(email, username, password) {
       }),
     });
   } catch (networkErr) {
-    throw new Error("Server or database is offline. Use customer/customer123 for signup testing.");
+    throw new Error("Server is unreachable. Please try again.");
   }
 
   const data = await parseJsonSafely(res);
