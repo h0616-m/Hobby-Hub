@@ -39,6 +39,14 @@ public class AdminController {
                         ));
             }
 
+            if (userRepository.isAdmin(id)) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of(
+                                "status", "ERROR",
+                                "message", "Admin accounts cannot be banned"
+                        ));
+            }
+
             boolean success = userRepository.banUser(id);
 
             if (!success) {

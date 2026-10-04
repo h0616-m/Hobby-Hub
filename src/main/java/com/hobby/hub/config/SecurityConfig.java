@@ -65,6 +65,12 @@ public class SecurityConfig {
             String email = oAuth2User.getAttribute("email");
             String name = oAuth2User.getAttribute("name");
             String googleId = oAuth2User.getAttribute("sub");
+            Boolean emailVerified = oAuth2User.getAttribute("email_verified");
+
+            if (email == null || !Boolean.TRUE.equals(emailVerified)) {
+                response.sendRedirect("https://hobby-hub-nine.vercel.app/auth");
+                return;
+            }
 
             String suggestedUsername = (name != null ? name : email).replaceAll("\\s+", "").toLowerCase();
             Long userId = userRepository.findOrCreateGoogleUser(googleId, email, suggestedUsername);
@@ -72,7 +78,12 @@ public class SecurityConfig {
                     .map(u -> u.getUsername())
                     .orElse(suggestedUsername);
 
-            HttpSession session = request.getSession();
+            // Start a brand-new session so nothing from a previous login (e.g. an admin) carries over.
+            HttpSession oldSession = request.getSession(false);
+            if (oldSession != null) {
+                oldSession.invalidate();
+            }
+            HttpSession session = request.getSession(true);
             session.setAttribute("userId", userId);
             session.setAttribute("username", actualUsername);
 

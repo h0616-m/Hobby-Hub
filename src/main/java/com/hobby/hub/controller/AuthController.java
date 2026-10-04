@@ -2,6 +2,7 @@ package com.hobby.hub.controller;
 
 import com.hobby.hub.dto.LoginRequest;
 import com.hobby.hub.dto.SignupRequest;
+import com.hobby.hub.model.User;
 import com.hobby.hub.repository.UserRepository;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api")
@@ -50,13 +52,32 @@ public class AuthController {
         }
     }
 
+    /** Source of truth for who the current session is, including admin/banned status (read from the DB). */
     @GetMapping("/me")
     public ResponseEntity<?> me(HttpSession session) {
-        String username = (String) session.getAttribute("username");
-        if (username == null) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        return ResponseEntity.ok(Map.of("username", username));
+        Optional<User> found = userRepository.findById(userId);
+        if (found.isEmpty()) {
+            session.invalidate();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        User u = found.get();
+        return ResponseEntity.ok(Map.of(
+                "id", u.getId(),
+                "username", u.getUsername() == null ? "" : u.getUsername(),
+                "email", u.getEmail() == null ? "" : u.getEmail(),
+                "isAdmin", u.isAdmin(),
+                "isBanned", u.isBanned()
+        ));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpSession session) {
+        session.invalidate();
+        return ResponseEntity.ok(Map.of("status", "SUCCESS"));
     }
 
     @PostMapping("/signup")

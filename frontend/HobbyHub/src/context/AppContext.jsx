@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, useEffect } from "react";
-import { logoutRequest } from "../api/authApi";
+import { logoutRequest, getCurrentUser } from "../api/authApi";
 import { fetchPosts, createPost, votePost, addPostComment } from "../api/postsApi";
 import { fetchChatrooms, sendChatroomMessage } from "../api/chatroomsApi";
 import { deletePostRequest, banUserRequest } from "../api/adminApi";
@@ -16,37 +16,39 @@ function readStored(key, fallback) {
 }
 
 export function AppProvider({ children }) {
-  const [user, setUser] = useState(() => {
-    const stored = readStored("hobbyhub_user", null);
-    if (!stored) return null;
-    const name = typeof stored === "object" ? stored.username : stored;
-    const mail = typeof stored === "object" ? stored.email : "";
-    if (name?.toLowerCase() === "admin" || mail?.toLowerCase() === "admin@gmail.com") {
-      return {
-        username: "admin",
-        email: "admin@gmail.com",
-        role: "ADMIN",
-        isAdmin: true,
-        isBanned: false,
-      };
-    }
-    return stored;
-  });
+  // The server session is the only source of truth for who the user is and whether
+  // they are an admin or banned. Nothing about identity is cached in localStorage.
+  const [user, setUser] = useState(null);
+  const [authChecked, setAuthChecked] = useState(false);
 
   const [hobbies, setHobbies] = useState(() => readStored("hobbyhub_hobbies", []));
   const [posts, setPosts] = useState([]);
   const [postsLoaded, setPostsLoaded] = useState(false);
   const [chatrooms, setChatrooms] = useState([]);
   const [chatroomsLoaded, setChatroomsLoaded] = useState(false);
-  const authChecked = true;
 
-  useEffect(() => {
-    if (user === null) {
-      localStorage.removeItem("hobbyhub_user");
+  const refreshUser = useCallback(async () => {
+    const me = await getCurrentUser();
+    if (me && me.username) {
+      setUser({
+        id: me.id,
+        username: me.username,
+        email: me.email || "",
+        isAdmin: me.isAdmin === true,
+        isBanned: me.isBanned === true,
+        role: me.isAdmin === true ? "ADMIN" : "USER",
+      });
     } else {
-      localStorage.setItem("hobbyhub_user", JSON.stringify(user));
+      setUser(null);
     }
-  }, [user]);
+    setAuthChecked(true);
+    return me;
+  }, []);
+
+  // On load (including right after the Google redirect) ask the server who we are.
+  useEffect(() => {
+    refreshUser();
+  }, [refreshUser]);
 
   useEffect(() => {
     if (hobbies.length === 0) {
@@ -56,48 +58,13 @@ export function AppProvider({ children }) {
     }
   }, [hobbies]);
 
-  const login = useCallback((userData) => {
-    const name = typeof userData === "object" ? userData.username : userData;
-    const mail = typeof userData === "object" ? userData.email : "";
-
-    if (name?.toLowerCase() === "admin" || mail?.toLowerCase() === "admin@gmail.com") {
-      setUser({
-        username: "admin",
-        email: "admin@gmail.com",
-        role: "ADMIN",
-        isAdmin: true,
-        isBanned: false,
-      });
-    } else if (typeof userData === "string") {
-      setUser({
-        username: userData,
-        email: `${userData}@gmail.com`,
-        role: "USER",
-        isAdmin: false,
-        isBanned: false,
-      });
-    } else {
-      setUser(userData);
-    }
-  }, []);
-
-  const signup = useCallback((userData) => {
-    if (typeof userData === "string") {
-      setUser({
-        username: userData,
-        email: `${userData}@gmail.com`,
-        role: "USER",
-        isAdmin: false,
-        isBanned: false,
-      });
-    } else {
-      setUser(userData);
-    }
-  }, []);
+  // login/signup are called after the backend has created the session; just load that session's user.
+  const login = useCallback(() => refreshUser(), [refreshUser]);
+  const signup = useCallback(() => refreshUser(), [refreshUser]);
 
   const updateHobbies = useCallback((selected) => setHobbies(selected), []);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
     localStorage.removeItem("hobbyhub_user");
     localStorage.removeItem("hobbyhub_hobbies");
     setUser(null);
@@ -106,7 +73,7 @@ export function AppProvider({ children }) {
     setPostsLoaded(false);
     setChatrooms([]);
     setChatroomsLoaded(false);
-    logoutRequest().catch(() => {});
+    await logoutRequest();
   }, []);
 
   const loadPosts = useCallback(async () => {
@@ -187,18 +154,8 @@ export function AppProvider({ children }) {
 
   const username = typeof user === "object" ? user?.username : user;
 
-  // HARDCODED ADMIN CHECK
-  const isAdmin = Boolean(
-    user === "admin" ||
-    (typeof user === "object" && (
-      user?.username?.toLowerCase() === "admin" ||
-      user?.email?.toLowerCase() === "admin@gmail.com" ||
-      user?.role === "ADMIN" ||
-      user?.isAdmin === true
-    ))
-  );
-
-  const isBanned = typeof user === "object" ? Boolean(user?.isBanned) : false;
+  const isAdmin = user?.isAdmin === true;
+  const isBanned = user?.isBanned === true;
 
   const value = {
     user,
@@ -213,6 +170,7 @@ export function AppProvider({ children }) {
     chatroomsLoaded,
     login,
     signup,
+    refreshUser,
     logout,
     updateHobbies,
     vote,

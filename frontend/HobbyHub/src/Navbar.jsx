@@ -10,10 +10,7 @@ export default function Navbar() {
   const navigate = useNavigate();
 
   const username = typeof user === "object" ? user?.username : user;
-  const email =
-    typeof user === "object"
-      ? user?.email || `${username}@gmail.com`
-      : `${user}@gmail.com`;
+  const email = typeof user === "object" ? user?.email || "" : "";
 
   const handleLogout = async () => {
     setShowMenu(false);

@@ -40,14 +40,7 @@ export default function PostDetailPage() {
   const post = posts.find((p) => String(p.id) === String(id));
 
   const userObj = typeof user === 'object' && user !== null ? user : { username: user };
-  const effectiveIsAdmin = Boolean(
-    isAdmin ||
-    user === 'admin' ||
-    userObj?.isAdmin === true ||
-    userObj?.role === 'ADMIN' ||
-    userObj?.username?.toLowerCase() === 'admin' ||
-    userObj?.email?.toLowerCase() === 'admin@gmail.com'
-  );
+  const effectiveIsAdmin = isAdmin === true;
 
   const handleVote = (direction) => {
     if (post) {

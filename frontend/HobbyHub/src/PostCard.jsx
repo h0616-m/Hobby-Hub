@@ -10,14 +10,7 @@ export default function PostCard({ post }) {
 
   // Bulletproof admin determination
   const userObj = typeof user === 'object' && user !== null ? user : { username: user };
-  const effectiveIsAdmin = Boolean(
-    isAdmin ||
-    user === 'admin' ||
-    userObj?.isAdmin === true ||
-    userObj?.role === 'ADMIN' ||
-    userObj?.username?.toLowerCase() === 'admin' ||
-    userObj?.email?.toLowerCase() === 'admin@gmail.com'
-  );
+  const effectiveIsAdmin = isAdmin === true;
 
   useEffect(() => {
     function handleClickOutside(e) {

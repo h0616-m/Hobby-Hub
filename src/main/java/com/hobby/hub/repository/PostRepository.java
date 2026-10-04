@@ -24,7 +24,7 @@ public class PostRepository {
 
     public List<Post> findAll(Long currentUserId) {
         List<Post> posts = jdbcTemplate.query(
-                SELECT_WITH_AUTHOR + "ORDER BY p.created_at DESC",
+                SELECT_WITH_AUTHOR + "WHERE u.is_banned = FALSE ORDER BY p.created_at DESC",
                 this::mapRow, currentUserId
         );
         posts.forEach(p -> p.setComments(commentRepository.findByPostId(p.getId())));

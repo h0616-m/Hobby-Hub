@@ -43,12 +43,12 @@ export default function AuthPage() {
       if (mode === "login") {
         const fn = authApi.loginRequest || (async () => ({ username: identifier }));
         const data = await fn(identifier, userPass);
-        if (login) login(data?.username || identifier);
+        await login();
         navigate("/feed", { replace: true });
       } else {
         const fn = authApi.signupRequest || (async () => ({ username: username.trim() }));
         const data = await fn(identifier, username.trim(), userPass);
-        if (signup) signup(data?.username || username.trim());
+        await signup();
         navigate("/hobbies", { replace: true });
       }
     } catch (err) {

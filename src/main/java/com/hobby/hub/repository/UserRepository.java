@@ -130,13 +130,15 @@ public class UserRepository {
 
     public Optional<User> findById(Long id) {
         return jdbcTemplate.query(
-                "SELECT id, username, email, google_id FROM users WHERE id = ?",
+                "SELECT id, username, email, google_id, is_admin, is_banned FROM users WHERE id = ?",
                 (rs, rowNum) -> {
                     User user = new User();
                     user.setId(rs.getLong("id"));
                     user.setUsername(rs.getString("username"));
                     user.setEmail(rs.getString("email"));
                     user.setGoogleId(rs.getString("google_id"));
+                    user.setAdmin(rs.getBoolean("is_admin"));
+                    user.setBanned(rs.getBoolean("is_banned"));
                     return user;
                 },
                 id

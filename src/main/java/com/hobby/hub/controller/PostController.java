@@ -5,8 +5,10 @@ import com.hobby.hub.dto.PostRequest;
 import com.hobby.hub.dto.VoteRequest;
 import com.hobby.hub.model.Comment;
 import com.hobby.hub.model.Post;
+import com.hobby.hub.model.User;
 import com.hobby.hub.repository.CommentRepository;
 import com.hobby.hub.repository.PostRepository;
+import com.hobby.hub.repository.UserRepository;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -26,6 +28,18 @@ public class PostController {
     @Autowired
     private CommentRepository commentRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
+    private boolean isBanned(Long userId) {
+        return userRepository.findById(userId).map(User::isBanned).orElse(false);
+    }
+
+    private ResponseEntity<?> bannedResponse() {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(Map.of("status", "ERROR", "message", "Your account has been banned"));
+    }
+
     @GetMapping
     public List<Post> getAllPosts(HttpSession session) {
         Long userId = (Long) session.getAttribute("userId");
@@ -39,6 +53,7 @@ public class PostController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("status", "ERROR", "message", "You must be logged in to post"));
         }
+        if (isBanned(userId)) return bannedResponse();
         if (request.getTitle() == null || request.getTitle().isBlank()) {
             return ResponseEntity.badRequest()
                     .body(Map.of("status", "ERROR", "message", "Title is required"));
@@ -56,6 +71,7 @@ public class PostController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("status", "ERROR", "message", "You must be logged in to vote"));
         }
+        if (isBanned(userId)) return bannedResponse();
         int direction = "up".equalsIgnoreCase(request.getDirection()) ? 1 : -1;
         postRepository.vote(id, userId, direction);
         return ResponseEntity.ok(postRepository.findById(id, userId));
@@ -68,6 +84,7 @@ public class PostController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("status", "ERROR", "message", "You must be logged in to comment"));
         }
+        if (isBanned(userId)) return bannedResponse();
         if (request.getText() == null || request.getText().isBlank()) {
             return ResponseEntity.badRequest()
                     .body(Map.of("status", "ERROR", "message", "Comment text is required"));
