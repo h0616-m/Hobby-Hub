@@ -33,7 +33,9 @@ export default function FeedPage() {
   }, [chatroomsLoaded, loadChatrooms]);
 
   const visiblePosts = useMemo(() => {
-    let list = hobbies.length === 0 ? posts : posts.filter((p) => hobbies.includes(p.hobby));
+    let list = hobbies.length === 0
+      ? posts
+      : posts.filter((p) => p.hobby === 'General' || hobbies.includes(p.hobby));
     const q = search.trim().toLowerCase();
     if (q) {
       list = list.filter((p) =>

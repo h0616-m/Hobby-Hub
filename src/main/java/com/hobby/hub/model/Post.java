@@ -9,6 +9,7 @@ public class Post {
     private String author;
     private String title;
     private String body;
+    private String hobby;
     private LocalDateTime createdAt;
     private int upvotes;
     private String userVote;
@@ -27,6 +28,9 @@ public class Post {
 
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
+
+    public String getHobby() { return hobby; }
+    public void setHobby(String hobby) { this.hobby = hobby; }
 
     public String getBody() { return body; }
     public void setBody(String body) { this.body = body; }

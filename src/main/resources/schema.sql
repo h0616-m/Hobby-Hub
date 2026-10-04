@@ -30,3 +30,6 @@ CREATE TABLE IF NOT EXISTS post_votes (
     direction SMALLINT NOT NULL,
     PRIMARY KEY (post_id, user_id)
 );
+
+
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS hobby VARCHAR(50) NOT NULL DEFAULT 'General';

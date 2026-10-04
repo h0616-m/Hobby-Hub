@@ -17,7 +17,7 @@ public class PostRepository {
     private CommentRepository commentRepository;
 
     private static final String SELECT_WITH_AUTHOR =
-            "SELECT p.id, p.user_id, p.title, p.body, p.created_at, u.username AS author, " +
+            "SELECT p.id, p.user_id, p.title, p.body, p.hobby, p.created_at, u.username AS author, " +
             "COALESCE((SELECT SUM(direction) FROM post_votes WHERE post_id = p.id), 0) AS upvotes, " +
             "(SELECT direction FROM post_votes WHERE post_id = p.id AND user_id = ?) AS user_vote " +
             "FROM posts p JOIN users u ON u.id = p.user_id ";
@@ -31,10 +31,10 @@ public class PostRepository {
         return posts;
     }
 
-    public Post create(Long userId, String title, String body) {
+    public Post create(Long userId, String title, String body, String hobby) {
         Long id = jdbcTemplate.queryForObject(
-                "INSERT INTO posts (user_id, title, body) VALUES (?, ?, ?) RETURNING id",
-                Long.class, userId, title, body
+                "INSERT INTO posts (user_id, title, body, hobby) VALUES (?, ?, ?, ?) RETURNING id",
+                Long.class, userId, title, body, hobby
         );
         return findById(id, userId);
     }
@@ -80,6 +80,7 @@ public class PostRepository {
         post.setUserId(rs.getLong("user_id"));
         post.setTitle(rs.getString("title"));
         post.setBody(rs.getString("body"));
+        post.setHobby(rs.getString("hobby"));
         post.setAuthor(rs.getString("author"));
         post.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
         post.setUpvotes(rs.getInt("upvotes"));

@@ -44,7 +44,8 @@ public class PostController {
                     .body(Map.of("status", "ERROR", "message", "Title is required"));
         }
 
-        Post post = postRepository.create(userId, request.getTitle(), request.getBody());
+        String hobby = (request.getHobby() == null || request.getHobby().isBlank()) ? "General" : request.getHobby().trim();
+        Post post = postRepository.create(userId, request.getTitle(), request.getBody(), hobby);
         return ResponseEntity.ok(post);
     }
 

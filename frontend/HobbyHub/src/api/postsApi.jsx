@@ -22,7 +22,7 @@ export async function fetchPosts() {
     }
 
     const data = await parseJsonSafely(res);
-    if (!Array.isArray(data) || data.length === 0) {
+    if (!Array.isArray(data)) {
       return MOCK_POSTS;
     }
 
