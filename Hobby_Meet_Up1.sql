@@ -97,7 +97,7 @@ CREATE TABLE Chat_Com
       Com_No_of_users int DEFAULT 0,
       PRIMARY KEY(Chatroom_id,Community_id)
      );
-CREATE TABLE Ineteraction
+CREATE TABLE Interaction
     (
       U_Name varchar(20) NOT NULL,
       Email_id varchar(30) NOT NULL,

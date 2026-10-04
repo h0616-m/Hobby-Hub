@@ -3,7 +3,9 @@ CREATE TABLE IF NOT EXISTS users (
     username VARCHAR(50) UNIQUE,
     password VARCHAR(255),
     email VARCHAR(255) UNIQUE,
-    google_id VARCHAR(255) UNIQUE
+    google_id VARCHAR(255) UNIQUE,
+    is_admin BOOLEAN NOT NULL DEFAULT FALSE,
+    is_banned BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 CREATE TABLE IF NOT EXISTS posts (

@@ -15,9 +15,40 @@ public class UserRepository {
     private JdbcTemplate jdbcTemplate;
 
     public boolean validateUser(String identifier, String password) {
-        String sql = "SELECT COUNT(*) FROM users WHERE (username = ? OR email = ?) AND password = ?";
+        String sql = "SELECT COUNT(*) FROM users\n" +
+                "WHERE (username = ? OR email = ?)\n" +
+                "AND password = ?\n" +
+                "AND is_banned = FALSE";
         Integer count = jdbcTemplate.queryForObject(sql, Integer.class, identifier, identifier, password);
         return count != null && count > 0;
+    }
+
+    public boolean isAdmin(Long userId) {
+        Integer count = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM users WHERE id = ? AND is_admin = TRUE",
+                Integer.class,
+                userId
+        );
+
+        return count != null && count > 0;
+    }
+
+    public boolean banUser(Long userId) {
+        int rows = jdbcTemplate.update(
+                "UPDATE users SET is_banned = TRUE WHERE id = ?",
+                userId
+        );
+
+        return rows > 0;
+    }
+
+    public boolean unbanUser(Long userId) {
+        int rows = jdbcTemplate.update(
+                "UPDATE users SET is_banned = FALSE WHERE id = ?",
+                userId
+        );
+
+        return rows > 0;
     }
 
     public Long findIdByUsernameOrEmail(String identifier) {

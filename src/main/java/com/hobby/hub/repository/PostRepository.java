@@ -88,4 +88,13 @@ public class PostRepository {
         post.setUserVote(noVote ? null : (userVoteRaw > 0 ? "up" : "down"));
         return post;
     }
+
+    public boolean deleteById(Long postId) {
+        int rows = jdbcTemplate.update(
+                "DELETE FROM posts WHERE id = ?",
+                postId
+        );
+
+        return rows > 0;
+    }
 }

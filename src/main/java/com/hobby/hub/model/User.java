@@ -6,6 +6,8 @@ public class User {
     private String password;
     private String email;
     private String googleId;
+    private boolean admin;
+    private boolean banned;
 
     public User() {}
 
@@ -29,4 +31,21 @@ public class User {
 
     public String getGoogleId() { return googleId; }
     public void setGoogleId(String googleId) { this.googleId = googleId; }
+
+    public boolean isAdmin() {
+        return admin;
+    }
+
+    public void setAdmin(boolean admin) {
+        this.admin = admin;
+    }
+
+    public boolean isBanned() {
+        return banned;
+    }
+
+    public void setBanned(boolean banned) {
+        this.banned = banned;
+    }
+
 }
