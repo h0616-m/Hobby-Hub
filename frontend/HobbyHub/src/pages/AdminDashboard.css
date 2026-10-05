@@ -6,7 +6,7 @@
   color: #e6edf3;
   padding: 32px 40px;
   box-sizing: border-box;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
 }
 
 /* Header */
@@ -36,6 +36,7 @@
 }
 
 .admin-back-btn {
+  visibility: hidden;
   display: inline-flex;
   align-items: center;
   gap: 8px;

@@ -190,11 +190,11 @@ export default function AdminDashboard() {
       {/* Top Header */}
       <header className="admin-header">
         <div className="admin-title-area">
-          <h1>🛡️ Admin Dashboard</h1>
-          <p className="admin-subtitle">Live Platform Analytics & User Moderation</p>
+          <h1>Admin Dashboard</h1>
+          <p className="admin-subtitle">Analytics and User Moderation</p>
         </div>
         <Link to="/feed" className="admin-back-btn">
-          ← Back to Feed
+          
         </Link>
       </header>
 
