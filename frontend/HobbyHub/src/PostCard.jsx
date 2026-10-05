@@ -8,9 +8,19 @@ export default function PostCard({ post }) {
   const menuRef = useRef(null);
   const navigate = useNavigate();
 
-  // Bulletproof admin determination
+  // Bulletproof admin & author determination
   const userObj = typeof user === 'object' && user !== null ? user : { username: user };
   const effectiveIsAdmin = isAdmin === true;
+
+  const currentUserId = userObj?.id;
+  const currentUsername = userObj?.username;
+  const isPostAuthor = Boolean(
+    (currentUserId != null && post.userId != null && String(currentUserId) === String(post.userId)) ||
+    (currentUsername && post.author && currentUsername.toLowerCase() === post.author.toLowerCase())
+  );
+
+  const canDelete = effectiveIsAdmin || isPostAuthor;
+  const canBan = effectiveIsAdmin && !isPostAuthor && post.author?.toLowerCase() !== 'admin';
 
   useEffect(() => {
     function handleClickOutside(e) {
@@ -79,8 +89,8 @@ export default function PostCard({ post }) {
               <span className="post-author-text">Posted by {post.author || 'user'}</span>
             </div>
 
-            {/* Admin 3 Dots Button */}
-            {effectiveIsAdmin && (
+            {/* 3 Dots Button for Admin or Post Author */}
+            {canDelete && (
               <button
                 type="button"
                 className="admin-dots-btn"
@@ -88,7 +98,7 @@ export default function PostCard({ post }) {
                   e.stopPropagation();
                   setShowAdminMenu((prev) => !prev);
                 }}
-                title=""
+                title={effectiveIsAdmin ? "Options" : "Delete post"}
               >
                 •••
               </button>
@@ -105,8 +115,8 @@ export default function PostCard({ post }) {
         </div>
       </div>
 
-      {/* Admin Action Box */}
-      {effectiveIsAdmin && showAdminMenu && (
+      {/* Action Box */}
+      {canDelete && showAdminMenu && (
         <div
           ref={menuRef}
           className="admin-actions-card"
@@ -115,9 +125,11 @@ export default function PostCard({ post }) {
           <button type="button" className="admin-action-btn" onClick={handleDelete}>
             Delete Post
           </button>
-          <button type="button" className="admin-action-btn" onClick={handleBan}>
-            Ban User
-          </button>
+          {canBan && (
+            <button type="button" className="admin-action-btn" onClick={handleBan}>
+              Ban User
+            </button>
+          )}
         </div>
       )}
     </div>

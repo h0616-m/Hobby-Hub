@@ -1,4 +1,5 @@
 import { MOCK_POSTS } from '../mockData';
+import { HOBBIES } from '../hobbies';
 
 async function parseJsonSafely(res) {
   const text = await res.text();
@@ -8,6 +9,18 @@ async function parseJsonSafely(res) {
   } catch {
     return { message: text };
   }
+}
+
+function resolveHobby(p, fallback = 'Coding') {
+  if (!p) return fallback;
+  const raw = p.hobby || p.category || p.hobbyName || p.hobby_name || p.topic || p.subreddit;
+  const val = typeof raw === 'string' ? raw.trim() : (raw && typeof raw === 'object' && raw.name ? String(raw.name).trim() : '');
+
+  if (val && val.toLowerCase() !== 'general') {
+    const match = HOBBIES.find((h) => h.id.toLowerCase() === val.toLowerCase());
+    return match ? match.id : val;
+  }
+  return fallback;
 }
 
 export async function fetchPosts() {
@@ -27,12 +40,17 @@ export async function fetchPosts() {
     }
 
     return data.map((p) => {
-      const postHobby = p.hobby || p.category || 'General';
+      const postHobby = resolveHobby(p, 'Coding');
       return {
         ...p,
+        id: String(p.id ?? p.Post_id ?? Date.now()),
+        title: p.title || p.Title || '',
+        body: p.body || p.Context || '',
         hobby: postHobby,
+        category: postHobby,
         subreddit: postHobby,
-        upvotes: typeof p.upvotes === 'number' ? p.upvotes : 1,
+        author: p.author || p.Author || 'user',
+        upvotes: typeof p.upvotes === 'number' ? p.upvotes : (typeof p.Likes === 'number' ? p.Likes : 1),
         userVote: p.userVote || null,
         comments: Array.isArray(p.comments) ? p.comments : [],
       };
@@ -43,7 +61,7 @@ export async function fetchPosts() {
 }
 
 export async function createPost(hobby, title, body, author) {
-  const cleanHobby = (hobby || '').trim() || 'General';
+  const cleanHobby = (hobby || '').trim() || 'Coding';
   const cleanTitle = (title || '').trim();
   const cleanBody = (body || '').trim();
   const authorName = (typeof author === 'object' ? author?.username : author) || 'you';
@@ -65,10 +83,14 @@ export async function createPost(hobby, title, body, author) {
     const p = await parseJsonSafely(res);
 
     if (res.ok && p) {
-      const assignedHobby = p.hobby || p.category || cleanHobby;
+      const assignedHobby = (p.hobby && p.hobby.toLowerCase() !== 'general')
+        ? resolveHobby(p, cleanHobby)
+        : cleanHobby;
+
       return {
-        id: String(p.id || Date.now()),
+        id: String(p.id ?? p.Post_id ?? Date.now()),
         hobby: assignedHobby,
+        category: assignedHobby,
         subreddit: assignedHobby,
         title: p.title || cleanTitle,
         body: p.body || cleanBody,
@@ -85,6 +107,7 @@ export async function createPost(hobby, title, body, author) {
   return {
     id: String(Date.now()),
     hobby: cleanHobby,
+    category: cleanHobby,
     subreddit: cleanHobby,
     title: cleanTitle,
     body: cleanBody,
@@ -108,10 +131,12 @@ export async function votePost(postId, direction) {
     const p = await parseJsonSafely(res);
     if (!p) return null;
 
-    const postHobby = p.hobby || p.category || 'General';
+    const postHobby = resolveHobby(p, 'Coding');
     return {
       ...p,
+      id: String(p.id ?? p.Post_id ?? postId),
       hobby: postHobby,
+      category: postHobby,
       subreddit: postHobby,
       comments: Array.isArray(p.comments) ? p.comments : [],
     };
@@ -146,4 +171,25 @@ export async function addPostComment(postId, text, author) {
     author: authorName,
     text: cleanText,
   };
+}
+
+export async function deletePostApi(postId) {
+  let res = await fetch(`/api/posts/${postId}`, {
+    method: 'DELETE',
+    credentials: 'include',
+  });
+
+  if (!res.ok && res.status !== 403) {
+    res = await fetch(`/api/admin/posts/${postId}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    });
+  }
+
+  if (!res.ok) {
+    const errorData = await parseJsonSafely(res);
+    throw new Error(errorData?.message || 'Failed to delete post');
+  }
+
+  return true;
 }

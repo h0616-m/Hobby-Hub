@@ -32,10 +32,18 @@ export default function FeedPage() {
     loadChatrooms().catch(() => {});
   }, [chatroomsLoaded, loadChatrooms]);
 
+  const selectedHobbySet = useMemo(() => {
+    return new Set((hobbies || []).map((h) => String(h).trim().toLowerCase()));
+  }, [hobbies]);
+
   const visiblePosts = useMemo(() => {
-    let list = hobbies.length === 0
+    let list = selectedHobbySet.size === 0
       ? posts
-      : posts.filter((p) => p.hobby === 'General' || hobbies.includes(p.hobby));
+      : posts.filter((p) => {
+          const postHobby = String(p.hobby || p.category || '').trim().toLowerCase();
+          return selectedHobbySet.has(postHobby);
+        });
+
     const q = search.trim().toLowerCase();
     if (q) {
       list = list.filter((p) =>
@@ -45,14 +53,19 @@ export default function FeedPage() {
       );
     }
     return list;
-  }, [posts, hobbies, search]);
+  }, [posts, selectedHobbySet, search]);
 
-  const joinedChatrooms = chatrooms.filter((c) => hobbies.includes(c.id));
+  const joinedChatrooms = useMemo(() => {
+    return chatrooms.filter((c) => selectedHobbySet.has(String(c.id).trim().toLowerCase()));
+  }, [chatrooms, selectedHobbySet]);
 
   const handleCreatePost = async (hobby, title, body) => {
     const authorName = (typeof user === 'object' ? user?.username : user) || 'you';
     await addPost(hobby, title, body, authorName);
-    if (!hobbies.includes(hobby)) {
+    const hasHobby = (hobbies || []).some(
+      (h) => String(h).trim().toLowerCase() === String(hobby).trim().toLowerCase()
+    );
+    if (!hasHobby) {
       updateHobbies([...hobbies, hobby]);
     }
     setShowCreateModal(false);

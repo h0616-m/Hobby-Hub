@@ -1,8 +1,10 @@
 import { createContext, useContext, useState, useCallback, useEffect } from "react";
 import { logoutRequest, getCurrentUser } from "../api/authApi";
-import { fetchPosts, createPost, votePost, addPostComment } from "../api/postsApi";
+import { fetchPosts, createPost, votePost, addPostComment, deletePostApi } from "../api/postsApi";
 import { fetchChatrooms, sendChatroomMessage } from "../api/chatroomsApi";
-import { deletePostRequest, banUserRequest } from "../api/adminApi";
+import { banUserRequest } from "../api/adminApi";
+
+const ALL_HOBBIES = ['Coding', 'Chess', 'Drawing', 'Gaming', 'Music', 'Fitness'];
 
 const AppContext = createContext(null);
 
@@ -15,13 +17,24 @@ function readStored(key, fallback) {
   }
 }
 
+function getUserHobbiesKey(u) {
+  const name = typeof u === "object" ? u?.username : u;
+  return name ? `hobbyhub_hobbies_${name.toLowerCase()}` : "hobbyhub_hobbies";
+}
+
 export function AppProvider({ children }) {
   // The server session is the only source of truth for who the user is and whether
-  // they are an admin or banned. Nothing about identity is cached in localStorage.
+  // they are an admin or banned.
   const [user, setUser] = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
 
-  const [hobbies, setHobbies] = useState(() => readStored("hobbyhub_hobbies", []));
+  const [hobbies, setHobbies] = useState(() => {
+    const initialUser = readStored("hobbyhub_user", null);
+    const key = getUserHobbiesKey(initialUser);
+    const userSaved = readStored(key, null);
+    if (Array.isArray(userSaved) && userSaved.length > 0) return userSaved;
+    return readStored("hobbyhub_hobbies", ['Coding']);
+  });
   const [posts, setPosts] = useState([]);
   const [postsLoaded, setPostsLoaded] = useState(false);
   const [chatrooms, setChatrooms] = useState([]);
@@ -30,14 +43,41 @@ export function AppProvider({ children }) {
   const refreshUser = useCallback(async () => {
     const me = await getCurrentUser();
     if (me && me.username) {
+      const isAdm = me.isAdmin === true;
       setUser({
         id: me.id,
         username: me.username,
         email: me.email || "",
-        isAdmin: me.isAdmin === true,
+        isAdmin: isAdm,
         isBanned: me.isBanned === true,
-        role: me.isAdmin === true ? "ADMIN" : "USER",
+        role: isAdm ? "ADMIN" : "USER",
       });
+
+      // Admin should always have all hobbies selected all the time
+      if (isAdm) {
+        setHobbies(ALL_HOBBIES);
+        localStorage.setItem("hobbyhub_hobbies", JSON.stringify(ALL_HOBBIES));
+        localStorage.setItem(getUserHobbiesKey(me), JSON.stringify(ALL_HOBBIES));
+      } else {
+        // Normal user: restore from backend selectedHobbies or localStorage
+        let userHobbies = [];
+        if (me.selectedHobbies && typeof me.selectedHobbies === 'string') {
+          userHobbies = me.selectedHobbies.split(',').map((s) => s.trim()).filter(Boolean);
+        }
+        if (!userHobbies || userHobbies.length === 0) {
+          const key = getUserHobbiesKey(me);
+          userHobbies = readStored(key, null);
+        }
+        if (!userHobbies || userHobbies.length === 0) {
+          userHobbies = readStored("hobbyhub_hobbies", ['Coding']);
+        }
+        if (!Array.isArray(userHobbies) || userHobbies.length === 0) {
+          userHobbies = ['Coding'];
+        }
+        setHobbies(userHobbies);
+        localStorage.setItem("hobbyhub_hobbies", JSON.stringify(userHobbies));
+        localStorage.setItem(getUserHobbiesKey(me), JSON.stringify(userHobbies));
+      }
     } else {
       setUser(null);
     }
@@ -51,22 +91,42 @@ export function AppProvider({ children }) {
   }, [refreshUser]);
 
   useEffect(() => {
-    if (hobbies.length === 0) {
-      localStorage.removeItem("hobbyhub_hobbies");
-    } else {
+    if (Array.isArray(hobbies) && hobbies.length > 0) {
       localStorage.setItem("hobbyhub_hobbies", JSON.stringify(hobbies));
+      if (user) {
+        localStorage.setItem(getUserHobbiesKey(user), JSON.stringify(hobbies));
+      }
     }
-  }, [hobbies]);
+  }, [hobbies, user]);
 
   // login/signup are called after the backend has created the session; just load that session's user.
   const login = useCallback(() => refreshUser(), [refreshUser]);
   const signup = useCallback(() => refreshUser(), [refreshUser]);
 
-  const updateHobbies = useCallback((selected) => setHobbies(selected), []);
+  const updateHobbies = useCallback(async (selected) => {
+    let list = Array.isArray(selected) ? selected : [];
+    if (user?.isAdmin === true) {
+      list = ALL_HOBBIES;
+    }
+    setHobbies(list);
+    localStorage.setItem("hobbyhub_hobbies", JSON.stringify(list));
+    if (user) {
+      localStorage.setItem(getUserHobbiesKey(user), JSON.stringify(list));
+      try {
+        await fetch("/api/hobbies", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ hobbies: list }),
+        });
+      } catch (e) {
+        // local / offline
+      }
+    }
+  }, [user]);
 
   const logout = useCallback(async () => {
     localStorage.removeItem("hobbyhub_user");
-    localStorage.removeItem("hobbyhub_hobbies");
     setUser(null);
     setHobbies([]);
     setPosts([]);
@@ -135,7 +195,7 @@ export function AppProvider({ children }) {
   }, [user]);
 
   const deletePost = useCallback(async (postId) => {
-    await deletePostRequest(postId);
+    await deletePostApi(postId);
     setPosts((prev) => prev.filter((p) => String(p.id) !== String(postId)));
   }, []);
 

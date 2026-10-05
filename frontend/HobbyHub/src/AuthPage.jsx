@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useApp } from "./context/AppContext";
 import * as authApi from "./api/authApi";
 
@@ -13,13 +13,22 @@ export default function AuthPage() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  const [searchParams] = useSearchParams();
   const { login, signup } = useApp();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const errorParam = searchParams.get("error");
+    if (errorParam) {
+      setError(errorParam);
+    }
+  }, [searchParams]);
 
   const switchMode = (nextMode) => {
     setMode(nextMode);
     setError("");
   };
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();

@@ -70,8 +70,26 @@ public class AuthController {
                 "username", u.getUsername() == null ? "" : u.getUsername(),
                 "email", u.getEmail() == null ? "" : u.getEmail(),
                 "isAdmin", u.isAdmin(),
-                "isBanned", u.isBanned()
+                "isBanned", u.isBanned(),
+                "selectedHobbies", u.getSelectedHobbies() == null ? "" : u.getSelectedHobbies()
         ));
+    }
+
+    @PostMapping("/hobbies")
+    public ResponseEntity<?> saveHobbies(@RequestBody Map<String, Object> body, HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        Object hobbiesObj = body.get("hobbies");
+        String hobbiesStr = "";
+        if (hobbiesObj instanceof java.util.List<?> list) {
+            hobbiesStr = String.join(",", list.stream().map(Object::toString).toList());
+        } else if (hobbiesObj != null) {
+            hobbiesStr = hobbiesObj.toString();
+        }
+        userRepository.updateSelectedHobbies(userId, hobbiesStr);
+        return ResponseEntity.ok(Map.of("status", "SUCCESS", "hobbies", hobbiesStr));
     }
 
     @PostMapping("/logout")

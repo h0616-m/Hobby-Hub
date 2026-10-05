@@ -48,4 +48,13 @@ public class User {
         this.banned = banned;
     }
 
+    private int deletedPostsCount;
+    private String selectedHobbies;
+
+    public int getDeletedPostsCount() { return deletedPostsCount; }
+    public void setDeletedPostsCount(int deletedPostsCount) { this.deletedPostsCount = deletedPostsCount; }
+
+    public String getSelectedHobbies() { return selectedHobbies; }
+    public void setSelectedHobbies(String selectedHobbies) { this.selectedHobbies = selectedHobbies; }
+
 }

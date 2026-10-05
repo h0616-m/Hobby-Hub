@@ -59,7 +59,7 @@ public class PostController {
                     .body(Map.of("status", "ERROR", "message", "Title is required"));
         }
 
-        String hobby = (request.getHobby() == null || request.getHobby().isBlank()) ? "General" : request.getHobby().trim();
+        String hobby = (request.getHobby() == null || request.getHobby().isBlank()) ? "Coding" : request.getHobby().trim();
         Post post = postRepository.create(userId, request.getTitle(), request.getBody(), hobby);
         return ResponseEntity.ok(post);
     }
@@ -91,5 +91,36 @@ public class PostController {
         }
         Comment comment = commentRepository.create(id, userId, request.getText().trim());
         return ResponseEntity.ok(comment);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deletePost(@PathVariable Long id, HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("status", "ERROR", "message", "You must be logged in to delete a post"));
+        }
+        if (isBanned(userId)) return bannedResponse();
+
+        Post post = postRepository.findById(id, userId);
+        if (post == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("status", "ERROR", "message", "Post not found"));
+        }
+
+        boolean isAdmin = userRepository.isAdmin(userId);
+        if (!isAdmin && !userId.equals(post.getUserId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("status", "ERROR", "message", "You can only delete your own posts"));
+        }
+
+        userRepository.incrementDeletedPosts(post.getUserId());
+        boolean success = postRepository.deleteById(id);
+        if (!success) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("status", "ERROR", "message", "Post not found"));
+        }
+
+        return ResponseEntity.ok(Map.of("status", "SUCCESS", "message", "Post deleted successfully"));
     }
 }

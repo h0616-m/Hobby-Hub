@@ -8,6 +8,8 @@ import PostDetailPage from './PostDetailPage';
 import ChatroomPage from './ChatroomPage';
 import BannedScreen from './BannedScreen';
 
+import AdminDashboard from './pages/AdminDashboard';
+
 function ProtectedRoute({ children }) {
   const { user, authChecked, isBanned } = useApp();
 
@@ -17,6 +19,20 @@ function ProtectedRoute({ children }) {
 
   if (!user) return <Navigate to="/auth" replace />;
   if (isBanned) return <BannedScreen />;
+
+  return children;
+}
+
+function AdminRoute({ children }) {
+  const { user, authChecked, isBanned, isAdmin } = useApp();
+
+  if (!authChecked) {
+    return <div className="loading-spinner">Verifying session…</div>;
+  }
+
+  if (!user) return <Navigate to="/auth" replace />;
+  if (isBanned) return <BannedScreen />;
+  if (!isAdmin) return <Navigate to="/feed" replace />;
 
   return children;
 }
@@ -35,6 +51,8 @@ function AppRoutes() {
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/hobbies" element={<ProtectedRoute><HobbiesSelect /></ProtectedRoute>} />
         <Route path="/feed" element={<ProtectedRoute><FeedPage /></ProtectedRoute>} />
+        <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+        <Route path="/admin/dashboard" element={<Navigate to="/admin" replace />} />
         <Route path="/post/:id" element={<ProtectedRoute><PostDetailPage /></ProtectedRoute>} />
         <Route path="/chatroom/:id" element={<ProtectedRoute><ChatroomPage /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/auth" replace />} />

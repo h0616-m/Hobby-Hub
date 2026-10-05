@@ -41,6 +41,14 @@ export default function PostDetailPage() {
 
   const userObj = typeof user === 'object' && user !== null ? user : { username: user };
   const effectiveIsAdmin = isAdmin === true;
+  const currentUserId = userObj?.id;
+  const currentUsername = userObj?.username;
+  const isPostAuthor = Boolean(
+    (currentUserId != null && post?.userId != null && String(currentUserId) === String(post.userId)) ||
+    (currentUsername && post?.author && currentUsername.toLowerCase() === post.author.toLowerCase())
+  );
+  const canDelete = effectiveIsAdmin || isPostAuthor;
+  const canBan = effectiveIsAdmin && !isPostAuthor && post?.author?.toLowerCase() !== 'admin';
 
   const handleVote = (direction) => {
     if (post) {
@@ -131,7 +139,7 @@ export default function PostDetailPage() {
               <span className="post-author-text">Posted by {post.author || 'user'}</span>
             </div>
 
-            {effectiveIsAdmin && (
+            {canDelete && (
               <div style={{ display: 'flex', gap: '8px' }}>
                 <button
                   type="button"
@@ -141,14 +149,16 @@ export default function PostDetailPage() {
                 >
                   Delete Post
                 </button>
-                <button
-                  type="button"
-                  className="admin-action-btn"
-                  style={{ padding: '6px 12px', fontSize: '12px', width: 'auto' }}
-                  onClick={handleBan}
-                >
-                  Ban User
-                </button>
+                {canBan && (
+                  <button
+                    type="button"
+                    className="admin-action-btn"
+                    style={{ padding: '6px 12px', fontSize: '12px', width: 'auto' }}
+                    onClick={handleBan}
+                  >
+                    Ban User
+                  </button>
+                )}
               </div>
             )}
           </div>

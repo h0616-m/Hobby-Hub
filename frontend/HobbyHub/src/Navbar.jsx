@@ -4,7 +4,7 @@ import { useApp } from "./context/AppContext";
 import userIcon from "./assets/images.png";
 
 export default function Navbar() {
-  const { user, logout } = useApp();
+  const { user, logout, isAdmin } = useApp();
   const [showMenu, setShowMenu] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
@@ -77,6 +77,31 @@ export default function Navbar() {
             position: "relative",
           }}
         >
+          {/* Admin Panel Button */}
+          {isAdmin && (
+            <Link
+              to="/admin"
+              aria-label="Admin Dashboard"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+                textDecoration: "none",
+                backgroundColor: "rgba(255, 69, 0, 0.15)",
+                color: "#ff4500",
+                border: "1px solid rgba(255, 69, 0, 0.4)",
+                padding: "6px 12px",
+                borderRadius: "6px",
+                fontSize: "13px",
+                fontWeight: 700,
+                transition: "all 0.2s ease",
+              }}
+            >
+              <span>🛡️</span>
+              <span>Admin Panel</span>
+            </Link>
+          )}
+
           {/* Home Icon */}
           <Link
             to="/feed"
@@ -186,6 +211,32 @@ export default function Navbar() {
                     {email}
                   </div>
                 </div>
+
+                {/* Admin Dashboard in Menu */}
+                {isAdmin && (
+                  <Link
+                    to="/admin"
+                    onClick={() => setShowMenu(false)}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "6px",
+                      textDecoration: "none",
+                      width: "100%",
+                      padding: "8px 0",
+                      backgroundColor: "rgba(255, 69, 0, 0.15)",
+                      color: "#ff4500",
+                      border: "1px solid rgba(255, 69, 0, 0.4)",
+                      borderRadius: "6px",
+                      fontSize: "13px",
+                      fontWeight: 700,
+                      boxSizing: "border-box",
+                    }}
+                  >
+                    🛡️ Admin Panel
+                  </Link>
+                )}
 
                 {/* Logout Button */}
                 <button

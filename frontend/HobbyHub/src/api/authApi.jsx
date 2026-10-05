@@ -32,6 +32,9 @@ export async function loginRequest(emailOrUsername, password) {
   const data = await parseJsonSafely(res);
 
   if (!res.ok) {
+    if (res.status >= 500 && (!data || !data.message)) {
+      throw new Error("Unable to connect to the backend server. Please make sure the Spring Boot server is running on port 8080.");
+    }
     throw new Error(data?.message || "Invalid username or password.");
   }
 
@@ -72,6 +75,9 @@ export async function signupRequest(email, username, password) {
   const data = await parseJsonSafely(res);
 
   if (!res.ok) {
+    if (res.status >= 500 && (!data || !data.message)) {
+      throw new Error("Unable to connect to the backend server. Please make sure the Spring Boot server is running on port 8080.");
+    }
     throw new Error(
       data?.message || "Signup failed. Username or email may already be in use."
     );

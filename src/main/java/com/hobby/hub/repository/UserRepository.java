@@ -16,7 +16,7 @@ public class UserRepository {
 
     public boolean validateUser(String identifier, String password) {
         String sql = "SELECT COUNT(*) FROM users\n" +
-                "WHERE (username = ? OR email = ?)\n" +
+                "WHERE (LOWER(username) = LOWER(?) OR LOWER(email) = LOWER(?))\n" +
                 "AND password = ?\n" +
                 "AND is_banned = FALSE";
         Integer count = jdbcTemplate.queryForObject(sql, Integer.class, identifier, identifier, password);
@@ -53,7 +53,7 @@ public class UserRepository {
 
     public Long findIdByUsernameOrEmail(String identifier) {
         List<Long> ids = jdbcTemplate.query(
-                "SELECT id FROM users WHERE username = ? OR email = ?",
+                "SELECT id FROM users WHERE LOWER(username) = LOWER(?) OR LOWER(email) = LOWER(?)",
                 (rs, rowNum) -> rs.getLong("id"),
                 identifier, identifier
         );
@@ -62,7 +62,7 @@ public class UserRepository {
 
     public String findUsernameByIdentifier(String identifier) {
         List<String> usernames = jdbcTemplate.query(
-                "SELECT username FROM users WHERE username = ? OR email = ?",
+                "SELECT username FROM users WHERE LOWER(username) = LOWER(?) OR LOWER(email) = LOWER(?)",
                 (rs, rowNum) -> rs.getString("username"),
                 identifier, identifier
         );
@@ -71,11 +71,11 @@ public class UserRepository {
 
     public boolean userExists(String username, String email) {
         if (email != null && !email.isBlank()) {
-            String sql = "SELECT COUNT(*) FROM users WHERE username = ? OR email = ?";
+            String sql = "SELECT COUNT(*) FROM users WHERE LOWER(username) = LOWER(?) OR LOWER(email) = LOWER(?)";
             Integer count = jdbcTemplate.queryForObject(sql, Integer.class, username, email);
             return count != null && count > 0;
         } else {
-            String sql = "SELECT COUNT(*) FROM users WHERE username = ?";
+            String sql = "SELECT COUNT(*) FROM users WHERE LOWER(username) = LOWER(?)";
             Integer count = jdbcTemplate.queryForObject(sql, Integer.class, username);
             return count != null && count > 0;
         }
@@ -130,7 +130,7 @@ public class UserRepository {
 
     public Optional<User> findById(Long id) {
         return jdbcTemplate.query(
-                "SELECT id, username, email, google_id, is_admin, is_banned FROM users WHERE id = ?",
+                "SELECT id, username, email, google_id, is_admin, is_banned, COALESCE(deleted_posts_count, 0) AS deleted_posts_count, selected_hobbies FROM users WHERE id = ?",
                 (rs, rowNum) -> {
                     User user = new User();
                     user.setId(rs.getLong("id"));
@@ -139,9 +139,29 @@ public class UserRepository {
                     user.setGoogleId(rs.getString("google_id"));
                     user.setAdmin(rs.getBoolean("is_admin"));
                     user.setBanned(rs.getBoolean("is_banned"));
+                    user.setDeletedPostsCount(rs.getInt("deleted_posts_count"));
+                    user.setSelectedHobbies(rs.getString("selected_hobbies"));
                     return user;
                 },
                 id
         ).stream().findFirst();
+    }
+
+    public void incrementDeletedPosts(Long userId) {
+        if (userId != null) {
+            jdbcTemplate.update(
+                    "UPDATE users SET deleted_posts_count = COALESCE(deleted_posts_count, 0) + 1 WHERE id = ?",
+                    userId
+            );
+        }
+    }
+
+    public void updateSelectedHobbies(Long userId, String hobbies) {
+        if (userId != null) {
+            jdbcTemplate.update(
+                    "UPDATE users SET selected_hobbies = ? WHERE id = ?",
+                    hobbies, userId
+            );
+        }
     }
 }

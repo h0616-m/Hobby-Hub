@@ -4,8 +4,8 @@ import { useApp } from './context/AppContext';
 import { HOBBIES } from './hobbies';
 
 export default function HobbiesSelect() {
-  const [selected, setSelected] = useState([]);
-  const { updateHobbies } = useApp();
+  const { hobbies, updateHobbies } = useApp();
+  const [selected, setSelected] = useState(Array.isArray(hobbies) ? hobbies : []);
   const navigate = useNavigate();
 
   const toggle = (id) => {
