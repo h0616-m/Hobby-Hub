@@ -15,7 +15,7 @@ const DEFAULT_METAS = {
 export default function ChatroomPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { chatrooms, user, isBanned, loadChatrooms, chatroomsLoaded } = useApp();
+  const { chatrooms, user, isBanned, loadChatrooms, chatroomsLoaded, hobbies } = useApp();
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
@@ -128,6 +128,25 @@ export default function ChatroomPage() {
           {isLive ? 'Live' : 'Connecting...'}
         </span>
       </div>
+
+      {hobbies && hobbies.length > 1 && (
+        <div className="mobile-chatroom-tabs">
+          {hobbies.map((h) => {
+            const isCurrent = h.toLowerCase() === (id || '').toLowerCase();
+            return (
+              <button
+                key={h}
+                type="button"
+                onClick={() => navigate(`/chatroom/${h}`)}
+                className={`mobile-chat-tab ${isCurrent ? 'active' : ''}`}
+              >
+                <span>{DEFAULT_METAS[h]?.icon || '💬'}</span>
+                <span>{h}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       <div className="chat-messages">
         {messages.length === 0 ? (

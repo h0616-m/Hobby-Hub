@@ -164,4 +164,23 @@ public class UserRepository {
             );
         }
     }
+
+    public boolean updateUsername(Long userId, String newUsername) {
+        if (userId == null || newUsername == null || newUsername.isBlank()) {
+            return false;
+        }
+        String clean = newUsername.trim();
+        Integer count = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM users WHERE LOWER(username) = LOWER(?) AND id <> ?",
+                Integer.class, clean, userId
+        );
+        if (count != null && count > 0) {
+            return false;
+        }
+        int rows = jdbcTemplate.update(
+                "UPDATE users SET username = ? WHERE id = ?",
+                clean, userId
+        );
+        return rows > 0;
+    }
 }

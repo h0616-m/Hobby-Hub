@@ -279,8 +279,8 @@ export default function AdminDashboard() {
             {/* Chart 1: Donut Chart - Post Share */}
             <div className="chart-card">
               <div className="chart-card-header">
-                <h3>Post Share by Hobby</h3>
-                <span className="chart-badge">Live Activity</span>
+                <h3>Post Pi chart</h3>
+                <span className="chart-badge">Posts shared</span>
               </div>
 
               <div className="donut-chart-container">
@@ -348,7 +348,7 @@ export default function AdminDashboard() {
             <div className="chart-card">
               <div className="chart-card-header">
                 <h3>Posts by Hobby</h3>
-                <span className="chart-badge">Post Volume</span>
+                <span className="chart-badge">Posts</span>
               </div>
 
               <div className="bar-chart-container">
@@ -387,7 +387,7 @@ export default function AdminDashboard() {
           <div className="admin-table-card">
             <div className="admin-table-header-box">
               <h3>Community Breakdown</h3>
-              <span className="chart-badge">{hobbiesData.length} Communities</span>
+              <span className="chart-badge">{hobbiesData.length} Hobbies</span>
             </div>
 
             <div className="admin-table-responsive">
@@ -397,7 +397,7 @@ export default function AdminDashboard() {
                     <th>Community</th>
                     <th>Posts</th>
                     <th>Comments</th>
-                    <th>Engagement (Likes / Dislikes)</th>
+                    <th>Likes / Dislikes</th>
                     <th>Top Contributor</th>
                   </tr>
                 </thead>
@@ -515,8 +515,8 @@ export default function AdminDashboard() {
           {/* Users Table */}
           <div className="admin-table-card">
             <div className="admin-table-header-box">
-              <h3>User Accounts ({filteredUsers.length})</h3>
-              <span className="chart-badge">Live Database Records</span>
+              <h3>Users ({filteredUsers.length})</h3>
+              <span className="chart-badge">Records</span>
             </div>
 
             <div className="admin-table-responsive">
@@ -572,7 +572,7 @@ export default function AdminDashboard() {
                             {isTargetAdmin ? (
                               <span className="admin-shield-tag">ADMIN</span>
                             ) : (
-                              <span style={{ color: '#8b949e', fontSize: '13px' }}>MEMBER</span>
+                              <span style={{ color: '#8b949e', fontSize: '13px' }}>Member</span>
                             )}
                           </td>
 

@@ -125,4 +125,50 @@ public class AuthController {
                     ));
         }
     }
+
+    @GetMapping("/check-username")
+    public ResponseEntity<?> checkUsername(@RequestParam("username") String username, HttpSession session) {
+        if (username == null || username.trim().isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("available", false, "message", "Username cannot be empty"));
+        }
+        String clean = username.trim().toLowerCase();
+        if ("admin".equals(clean)) {
+            return ResponseEntity.ok(Map.of("username", username, "available", false, "message", "This username is reserved"));
+        }
+        Long currentUserId = (Long) session.getAttribute("userId");
+        boolean exists = userRepository.userExists(clean, null);
+        if (exists && currentUserId != null) {
+            Optional<User> currentUser = userRepository.findById(currentUserId);
+            if (currentUser.isPresent() && clean.equalsIgnoreCase(currentUser.get().getUsername())) {
+                return ResponseEntity.ok(Map.of("username", username, "available", true));
+            }
+        }
+        return ResponseEntity.ok(Map.of("username", username, "available", !exists));
+    }
+
+    @PostMapping("/user/username")
+    public ResponseEntity<?> updateUsername(@RequestBody Map<String, Object> body, HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null && body.get("userId") != null) {
+            try {
+                userId = Long.valueOf(body.get("userId").toString());
+            } catch (Exception ignored) {}
+        }
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("status", "ERROR", "message", "Not authenticated"));
+        }
+        String newUsername = body.get("username") != null ? body.get("username").toString().trim() : "";
+        if (newUsername.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("status", "ERROR", "message", "Username cannot be empty"));
+        }
+        if ("admin".equalsIgnoreCase(newUsername)) {
+            return ResponseEntity.badRequest().body(Map.of("status", "ERROR", "message", "This username is reserved"));
+        }
+        boolean ok = userRepository.updateUsername(userId, newUsername);
+        if (!ok) {
+            return ResponseEntity.badRequest().body(Map.of("status", "ERROR", "message", "Username is already taken"));
+        }
+        session.setAttribute("username", newUsername);
+        return ResponseEntity.ok(Map.of("status", "SUCCESS", "username", newUsername));
+    }
 }

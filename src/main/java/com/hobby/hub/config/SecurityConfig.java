@@ -37,6 +37,7 @@ public class SecurityConfig {
                         .anyRequest().permitAll()
                 )
                 .oauth2Login(oauth2 -> oauth2
+                        .loginPage("/auth")
                         .successHandler(googleLoginSuccessHandler())
                         .failureHandler(googleLoginFailureHandler())
                 );
@@ -50,6 +51,7 @@ public class SecurityConfig {
         config.setAllowedOriginPatterns(List.of(
                 "http://localhost:*",
                 "http://127.0.0.1:*",
+                "https://*.vercel.app",
                 "https://hobby-hub-nine.vercel.app",
                 "https://hobby-hub-o8zd.onrender.com"
         ));
@@ -80,9 +82,11 @@ public class SecurityConfig {
 
             String suggestedUsername = (name != null ? name : email).replaceAll("\\s+", "").toLowerCase();
             Long userId = userRepository.findOrCreateGoogleUser(googleId, email, suggestedUsername);
-            String actualUsername = userRepository.findById(userId)
-                    .map(u -> u.getUsername())
-                    .orElse(suggestedUsername);
+            com.hobby.hub.model.User u = userRepository.findById(userId).orElse(null);
+            String actualUsername = (u != null && u.getUsername() != null) ? u.getUsername() : suggestedUsername;
+            boolean isAdm = u != null && u.isAdmin();
+            boolean isBanned = u != null && u.isBanned();
+            boolean isNew = u == null || u.getSelectedHobbies() == null || u.getSelectedHobbies().isBlank();
 
             // Start a brand-new session so nothing from a previous login (e.g. an admin) carries over.
             HttpSession oldSession = request.getSession(false);
@@ -94,7 +98,15 @@ public class SecurityConfig {
             session.setAttribute("username", actualUsername);
 
             String encodedUsername = URLEncoder.encode(actualUsername, StandardCharsets.UTF_8);
-            response.sendRedirect(redirectBase + "/feed?user=" + encodedUsername);
+            String encodedEmail = URLEncoder.encode(email != null ? email : "", StandardCharsets.UTF_8);
+
+            // Pass user auth info in query params to make sure Vercel / cross-domain logins succeed reliably
+            response.sendRedirect(redirectBase + "/feed?user=" + encodedUsername +
+                    "&userId=" + userId +
+                    "&email=" + encodedEmail +
+                    "&isAdmin=" + isAdm +
+                    "&isBanned=" + isBanned +
+                    "&isNew=" + isNew);
         };
     }
 
@@ -116,9 +128,16 @@ public class SecurityConfig {
         String serverName = request.getServerName();
         String host = request.getHeader("Host");
         String referer = request.getHeader("Referer");
-        if ("localhost".equalsIgnoreCase(serverName) || "127.0.0.1".equals(serverName) ||
-                (host != null && (host.contains("localhost") || host.contains("127.0.0.1"))) ||
-                (referer != null && (referer.contains("localhost") || referer.contains("127.0.0.1")))) {
+        String origin = request.getHeader("Origin");
+        String check = (host != null ? host : "") + " " + (referer != null ? referer : "") + " " + (origin != null ? origin : "");
+
+        if (check.contains("localhost:5173") || check.contains("127.0.0.1:5173")) {
+            return "http://localhost:5173";
+        }
+        if (check.contains("localhost:3000") || check.contains("127.0.0.1:3000")) {
+            return "http://localhost:3000";
+        }
+        if ("localhost".equalsIgnoreCase(serverName) || "127.0.0.1".equals(serverName)) {
             return "http://localhost:3000";
         }
         return "https://hobby-hub-nine.vercel.app";

@@ -2,13 +2,15 @@ import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useApp } from "./context/AppContext";
 import userIcon from "./assets/images.png";
+import logoHub from "./assets/logohub.png";
 
 export default function Navbar() {
-  const { user, logout, isAdmin } = useApp();
+  const { user, logout, isAdmin, hobbies } = useApp();
   const [showMenu, setShowMenu] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
+  const firstHobby = Array.isArray(hobbies) && hobbies.length > 0 ? hobbies[0] : 'Coding';
   const username = typeof user === "object" ? user?.username : user;
   const email = typeof user === "object" ? user?.email || "" : "";
 
@@ -34,6 +36,7 @@ export default function Navbar() {
 
   return (
     <header
+      className="main-navbar"
       style={{
         height: "60px",
         backgroundColor: "#0e1117",
@@ -49,12 +52,29 @@ export default function Navbar() {
       }}
     >
       {/* Left: Brand */}
-      <div>
+      <div className="navbar-brand-wrapper">
         <Link
           to={user ? "/feed" : "/auth"}
-          style={{ textDecoration: "none" }}
+          style={{
+            textDecoration: "none",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "8px",
+          }}
         >
+          <img
+            src={logoHub}
+            alt="HobbyHub Logo"
+            className="navbar-brand-logo"
+            style={{
+              width: "24px",
+              height: "24px",
+              objectFit: "contain",
+              display: "block",
+            }}
+          />
           <span
+            className="navbar-brand-text"
             style={{
               fontSize: "24px",
               fontWeight: 800,
@@ -70,6 +90,7 @@ export default function Navbar() {
       {/* Right: Home & Profile */}
       {user && (
         <div
+          className="navbar-right-group"
           style={{
             display: "flex",
             alignItems: "center",
@@ -81,6 +102,7 @@ export default function Navbar() {
           {isAdmin && (
             <Link
               to="/admin"
+              className="navbar-admin-link"
               aria-label="Admin Dashboard"
               style={{
                 display: "inline-flex",
@@ -95,17 +117,47 @@ export default function Navbar() {
                 fontSize: "13px",
                 fontWeight: 700,
                 transition: "all 0.2s ease",
+                flexShrink: 0,
               }}
             >
-              <span>🛡️</span>
-              <span>Admin Panel</span>
+              <span></span>
+              <span className="navbar-admin-label">Admin Panel</span>
             </Link>
           )}
+
+          {/* Chatroom Icon (Mobile only, directly left of Home SVG) */}
+          <Link
+            to={`/chatroom/${firstHobby}`}
+            className="nav-mobile-chat-link"
+            aria-label="Chatroom"
+            style={{
+              alignItems: "center",
+              justifyContent: "center",
+              textDecoration: "none",
+              padding: "4px",
+              borderRadius: "6px",
+              flexShrink: 0,
+            }}
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#ffffff"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+          </Link>
 
           {/* Home Icon */}
           <Link
             to="/feed"
             aria-label="Home"
+            className="navbar-home-link"
             style={{
               display: "flex",
               alignItems: "center",
@@ -113,6 +165,7 @@ export default function Navbar() {
               textDecoration: "none",
               padding: "4px",
               borderRadius: "6px",
+              flexShrink: 0,
             }}
           >
             <svg
@@ -225,16 +278,16 @@ export default function Navbar() {
                       textDecoration: "none",
                       width: "100%",
                       padding: "8px 0",
-                      backgroundColor: "rgba(255, 69, 0, 0.15)",
-                      color: "#ff4500",
-                      border: "1px solid rgba(255, 69, 0, 0.4)",
+                      backgroundColor: "rgba(255, 207, 207, 0.97)",
+                      color: "#ff1e00",
+                      border: "1px solid rgba(255, 207, 207, 0.97)",
                       borderRadius: "6px",
                       fontSize: "13px",
                       fontWeight: 700,
                       boxSizing: "border-box",
                     }}
                   >
-                    🛡️ Admin Panel
+                     Admin Panel
                   </Link>
                 )}
 

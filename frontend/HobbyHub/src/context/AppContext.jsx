@@ -85,9 +85,84 @@ export function AppProvider({ children }) {
     return me;
   }, []);
 
-  // On load (including right after the Google redirect) ask the server who we are.
+  // Handle initial auth & Google OAuth return
   useEffect(() => {
-    refreshUser();
+    const handleAuthInit = async () => {
+      const params = new URLSearchParams(window.location.search);
+      const googleUser = params.get("user");
+      const googleUserId = params.get("userId");
+      const googleEmail = params.get("email");
+      const googleIsAdmin = params.get("isAdmin") === "true";
+      const googleIsBanned = params.get("isBanned") === "true";
+      const isNewUser = params.get("isNew") === "true";
+
+      const authMode = sessionStorage.getItem("google_auth_mode");
+      const desiredUsername = sessionStorage.getItem("google_desired_username");
+
+      if (googleUser) {
+        let finalUsername = googleUser;
+        const currentUserId = googleUserId ? Number(googleUserId) : null;
+
+        // If user signed up with Google and entered a custom desired username
+        if (authMode === "signup" && desiredUsername && desiredUsername.trim().toLowerCase() !== googleUser.toLowerCase()) {
+          try {
+            const res = await fetch("/api/user/username", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              credentials: "include",
+              body: JSON.stringify({ userId: currentUserId, username: desiredUsername.trim() }),
+            });
+            const data = await res.json();
+            if (data.status === "SUCCESS") {
+              finalUsername = data.username;
+            } else {
+              sessionStorage.setItem("google_username_taken_error", data.message || "Username already taken");
+            }
+          } catch (e) {
+            console.warn("Could not save desired username", e);
+          }
+        }
+
+        const userObj = {
+          id: currentUserId,
+          username: finalUsername,
+          email: googleEmail || "",
+          isAdmin: googleIsAdmin,
+          isBanned: googleIsBanned,
+          role: googleIsAdmin ? "ADMIN" : "USER",
+        };
+
+        setUser(userObj);
+        localStorage.setItem("hobbyhub_user", JSON.stringify(userObj));
+        setAuthChecked(true);
+
+        // Remove query parameters from URL address bar
+        window.history.replaceState({}, document.title, window.location.pathname);
+
+        // Routing rule:
+        // "if login then google then directly to feed"
+        // "if sign up then google (u can choose username (if already not taken)) also goes to select hobbies page"
+        if (authMode === "signup" || (isNewUser && authMode !== "login")) {
+          sessionStorage.removeItem("google_auth_mode");
+          sessionStorage.removeItem("google_desired_username");
+          sessionStorage.setItem("just_google_signed_up", "true");
+          window.location.replace("/hobbies");
+          return;
+        } else {
+          sessionStorage.removeItem("google_auth_mode");
+          sessionStorage.removeItem("google_desired_username");
+          sessionStorage.removeItem("just_google_signed_up");
+          if (window.location.pathname !== "/feed") {
+            window.location.replace("/feed");
+          }
+          return;
+        }
+      }
+
+      await refreshUser();
+    };
+
+    handleAuthInit();
   }, [refreshUser]);
 
   useEffect(() => {
@@ -98,6 +173,29 @@ export function AppProvider({ children }) {
       }
     }
   }, [hobbies, user]);
+
+  const updateUsername = useCallback(async (newUsername) => {
+    if (!user || !newUsername || !newUsername.trim()) return { success: false, message: "Username cannot be empty" };
+    const clean = newUsername.trim();
+    try {
+      const res = await fetch("/api/user/username", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ userId: user.id, username: clean }),
+      });
+      const data = await res.json();
+      if (data.status === "SUCCESS") {
+        const updatedUser = { ...user, username: data.username };
+        setUser(updatedUser);
+        localStorage.setItem("hobbyhub_user", JSON.stringify(updatedUser));
+        return { success: true, username: data.username };
+      }
+      return { success: false, message: data.message || "Failed to update username" };
+    } catch (e) {
+      return { success: false, message: "Server connection failed" };
+    }
+  }, [user]);
 
   // login/signup are called after the backend has created the session; just load that session's user.
   const login = useCallback(() => refreshUser(), [refreshUser]);
@@ -233,6 +331,7 @@ export function AppProvider({ children }) {
     refreshUser,
     logout,
     updateHobbies,
+    updateUsername,
     vote,
     addComment,
     addPost,
