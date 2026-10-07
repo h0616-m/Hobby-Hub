@@ -90,6 +90,24 @@ public class UserRepository {
         return rows > 0;
     }
 
+    public boolean googleUserExists(String googleId, String email) {
+        if (googleId != null && !googleId.isBlank()) {
+            Integer count = jdbcTemplate.queryForObject(
+                    "SELECT COUNT(*) FROM users WHERE google_id = ?",
+                    Integer.class, googleId
+            );
+            if (count != null && count > 0) return true;
+        }
+        if (email != null && !email.isBlank()) {
+            Integer count = jdbcTemplate.queryForObject(
+                    "SELECT COUNT(*) FROM users WHERE LOWER(email) = LOWER(?)",
+                    Integer.class, email.trim()
+            );
+            return count != null && count > 0;
+        }
+        return false;
+    }
+
     public Long findOrCreateGoogleUser(String googleId, String email, String suggestedUsername) {
         Optional<Long> existingByGoogleId = jdbcTemplate.query(
                 "SELECT id FROM users WHERE google_id = ?",

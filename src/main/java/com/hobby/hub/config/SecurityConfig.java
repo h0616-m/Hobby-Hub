@@ -80,13 +80,15 @@ public class SecurityConfig {
                 return;
             }
 
+            boolean accountExists = userRepository.googleUserExists(googleId, email);
+
             String suggestedUsername = (name != null ? name : email).replaceAll("\\s+", "").toLowerCase();
             Long userId = userRepository.findOrCreateGoogleUser(googleId, email, suggestedUsername);
             com.hobby.hub.model.User u = userRepository.findById(userId).orElse(null);
             String actualUsername = (u != null && u.getUsername() != null) ? u.getUsername() : suggestedUsername;
             boolean isAdm = u != null && u.isAdmin();
             boolean isBanned = u != null && u.isBanned();
-            boolean isNew = u == null || u.getSelectedHobbies() == null || u.getSelectedHobbies().isBlank();
+            boolean isNew = !accountExists || (u == null || u.getSelectedHobbies() == null || u.getSelectedHobbies().isBlank());
 
             // Start a brand-new session so nothing from a previous login (e.g. an admin) carries over.
             HttpSession oldSession = request.getSession(false);
@@ -106,7 +108,8 @@ public class SecurityConfig {
                     "&email=" + encodedEmail +
                     "&isAdmin=" + isAdm +
                     "&isBanned=" + isBanned +
-                    "&isNew=" + isNew);
+                    "&isNew=" + isNew +
+                    "&accountExists=" + accountExists);
         };
     }
 

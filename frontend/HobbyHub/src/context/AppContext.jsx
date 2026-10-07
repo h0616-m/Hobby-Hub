@@ -95,11 +95,34 @@ export function AppProvider({ children }) {
       const googleIsAdmin = params.get("isAdmin") === "true";
       const googleIsBanned = params.get("isBanned") === "true";
       const isNewUser = params.get("isNew") === "true";
+      const accountExists = params.get("accountExists") === "true";
 
-      const authMode = sessionStorage.getItem("google_auth_mode");
+      const authMode = sessionStorage.getItem("google_auth_mode") || localStorage.getItem("google_auth_mode");
       const desiredUsername = sessionStorage.getItem("google_desired_username");
 
       if (googleUser) {
+        // Clear transient auth markers immediately
+        sessionStorage.removeItem("google_auth_mode");
+        localStorage.removeItem("google_auth_mode");
+        sessionStorage.removeItem("google_desired_username");
+
+        // If user attempted to "Sign up with Google", but the account already exists:
+        // Kick them back to login and display: "Account already exists, login instead"
+        if (authMode === "signup" && (accountExists || !isNewUser)) {
+          sessionStorage.removeItem("just_google_signed_up");
+          localStorage.removeItem("hobbyhub_user");
+          setUser(null);
+          try {
+            await logoutRequest();
+          } catch (e) {
+            console.warn("Logout failed", e);
+          }
+          window.location.replace(
+            "/auth?mode=login&error=" + encodeURIComponent("Account already exists, login instead")
+          );
+          return;
+        }
+
         let finalUsername = googleUser;
         const currentUserId = googleUserId ? Number(googleUserId) : null;
 
@@ -143,14 +166,10 @@ export function AppProvider({ children }) {
         // "if login then google then directly to feed"
         // "if sign up then google (u can choose username (if already not taken)) also goes to select hobbies page"
         if (authMode === "signup" || (isNewUser && authMode !== "login")) {
-          sessionStorage.removeItem("google_auth_mode");
-          sessionStorage.removeItem("google_desired_username");
           sessionStorage.setItem("just_google_signed_up", "true");
           window.location.replace("/hobbies");
           return;
         } else {
-          sessionStorage.removeItem("google_auth_mode");
-          sessionStorage.removeItem("google_desired_username");
           sessionStorage.removeItem("just_google_signed_up");
           if (window.location.pathname !== "/feed") {
             window.location.replace("/feed");

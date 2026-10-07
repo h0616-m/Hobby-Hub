@@ -121,7 +121,7 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of(
                             "status", "ERROR",
-                            "message", "Username or email already exists"
+                            "message", "Account already exists, login instead"
                     ));
         }
     }

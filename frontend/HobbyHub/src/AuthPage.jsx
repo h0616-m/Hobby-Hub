@@ -22,6 +22,10 @@ export default function AuthPage() {
     if (errorParam) {
       setError(errorParam);
     }
+    const modeParam = searchParams.get("mode");
+    if (modeParam === "login" || modeParam === "signup") {
+      setMode(modeParam);
+    }
   }, [searchParams]);
 
   const switchMode = (nextMode) => {
@@ -61,7 +65,11 @@ export default function AuthPage() {
         navigate("/hobbies", { replace: true });
       }
     } catch (err) {
-      setError(err?.message || "Something went wrong. Please try again.");
+      const msg = err?.message || "Something went wrong. Please try again.";
+      setError(msg);
+      if (msg.toLowerCase().includes("account already exists")) {
+        setMode("login");
+      }
     } finally {
       setSubmitting(false);
     }
@@ -158,6 +166,7 @@ export default function AuthPage() {
           type="button"
           onClick={() => {
             sessionStorage.setItem("google_auth_mode", mode);
+            localStorage.setItem("google_auth_mode", mode);
             if (mode === "signup" && username.trim()) {
               sessionStorage.setItem("google_desired_username", username.trim());
             } else {
