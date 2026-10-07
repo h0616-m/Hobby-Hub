@@ -25,7 +25,9 @@ function getUserHobbiesKey(u) {
 export function AppProvider({ children }) {
   // The server session is the only source of truth for who the user is and whether
   // they are an admin or banned.
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    return readStored("hobbyhub_user", null);
+  });
   const [authChecked, setAuthChecked] = useState(false);
 
   const [hobbies, setHobbies] = useState(() => {
@@ -41,48 +43,67 @@ export function AppProvider({ children }) {
   const [chatroomsLoaded, setChatroomsLoaded] = useState(false);
 
   const refreshUser = useCallback(async () => {
-    const me = await getCurrentUser();
-    if (me && me.username) {
-      const isAdm = me.isAdmin === true;
-      setUser({
-        id: me.id,
-        username: me.username,
-        email: me.email || "",
-        isAdmin: isAdm,
-        isBanned: me.isBanned === true,
-        role: isAdm ? "ADMIN" : "USER",
-      });
+    try {
+      const me = await getCurrentUser();
+      if (me && me.username) {
+        const isAdm = me.isAdmin === true;
+        const userObj = {
+          id: me.id,
+          username: me.username,
+          email: me.email || "",
+          isAdmin: isAdm,
+          isBanned: me.isBanned === true,
+          role: isAdm ? "ADMIN" : "USER",
+        };
+        setUser(userObj);
+        localStorage.setItem("hobbyhub_user", JSON.stringify(userObj));
 
-      // Admin should always have all hobbies selected all the time
-      if (isAdm) {
-        setHobbies(ALL_HOBBIES);
-        localStorage.setItem("hobbyhub_hobbies", JSON.stringify(ALL_HOBBIES));
-        localStorage.setItem(getUserHobbiesKey(me), JSON.stringify(ALL_HOBBIES));
-      } else {
-        // Normal user: restore from backend selectedHobbies or localStorage
-        let userHobbies = [];
-        if (me.selectedHobbies && typeof me.selectedHobbies === 'string') {
-          userHobbies = me.selectedHobbies.split(',').map((s) => s.trim()).filter(Boolean);
+        // Admin should always have all hobbies selected all the time
+        if (isAdm) {
+          setHobbies(ALL_HOBBIES);
+          localStorage.setItem("hobbyhub_hobbies", JSON.stringify(ALL_HOBBIES));
+          localStorage.setItem(getUserHobbiesKey(me), JSON.stringify(ALL_HOBBIES));
+        } else {
+          // Normal user: restore from backend selectedHobbies or localStorage
+          let userHobbies = [];
+          if (me.selectedHobbies && typeof me.selectedHobbies === 'string') {
+            userHobbies = me.selectedHobbies.split(',').map((s) => s.trim()).filter(Boolean);
+          }
+          if (!userHobbies || userHobbies.length === 0) {
+            const key = getUserHobbiesKey(me);
+            userHobbies = readStored(key, null);
+          }
+          if (!userHobbies || userHobbies.length === 0) {
+            userHobbies = readStored("hobbyhub_hobbies", ['Coding']);
+          }
+          if (!Array.isArray(userHobbies) || userHobbies.length === 0) {
+            userHobbies = ['Coding'];
+          }
+          setHobbies(userHobbies);
+          localStorage.setItem("hobbyhub_hobbies", JSON.stringify(userHobbies));
+          localStorage.setItem(getUserHobbiesKey(me), JSON.stringify(userHobbies));
         }
-        if (!userHobbies || userHobbies.length === 0) {
-          const key = getUserHobbiesKey(me);
-          userHobbies = readStored(key, null);
-        }
-        if (!userHobbies || userHobbies.length === 0) {
-          userHobbies = readStored("hobbyhub_hobbies", ['Coding']);
-        }
-        if (!Array.isArray(userHobbies) || userHobbies.length === 0) {
-          userHobbies = ['Coding'];
-        }
-        setHobbies(userHobbies);
-        localStorage.setItem("hobbyhub_hobbies", JSON.stringify(userHobbies));
-        localStorage.setItem(getUserHobbiesKey(me), JSON.stringify(userHobbies));
+        setAuthChecked(true);
+        return me;
+      }
+    } catch (e) {
+      console.warn("Failed to fetch current user", e);
+    }
+
+    // Fallback: Check if user is already saved in localStorage before resetting to null
+    const stored = readStored("hobbyhub_user", null);
+    if (stored && stored.username) {
+      setUser(stored);
+      const key = getUserHobbiesKey(stored);
+      const userSaved = readStored(key, null);
+      if (Array.isArray(userSaved) && userSaved.length > 0) {
+        setHobbies(userSaved);
       }
     } else {
       setUser(null);
     }
     setAuthChecked(true);
-    return me;
+    return null;
   }, []);
 
   // Handle initial auth & Google OAuth return
@@ -108,7 +129,7 @@ export function AppProvider({ children }) {
 
         // If user attempted to "Sign up with Google", but the account already exists:
         // Kick them back to login and display: "Account already exists, login instead"
-        if (authMode === "signup" && (accountExists || !isNewUser)) {
+        if (authMode === "signup" && accountExists && !isNewUser) {
           sessionStorage.removeItem("just_google_signed_up");
           localStorage.removeItem("hobbyhub_user");
           setUser(null);
@@ -159,15 +180,17 @@ export function AppProvider({ children }) {
         localStorage.setItem("hobbyhub_user", JSON.stringify(userObj));
         setAuthChecked(true);
 
-        // Remove query parameters from URL address bar
+        // Remove query parameters from URL address bar cleanly without page reload
         window.history.replaceState({}, document.title, window.location.pathname);
 
         // Routing rule:
-        // "if login then google then directly to feed"
-        // "if sign up then google (u can choose username (if already not taken)) also goes to select hobbies page"
-        if (authMode === "signup" || (isNewUser && authMode !== "login")) {
+        // New user or signup mode -> navigate to /hobbies to choose username & pick hobbies
+        // Existing user -> navigate to /feed
+        if (isNewUser || authMode === "signup") {
           sessionStorage.setItem("just_google_signed_up", "true");
-          window.location.replace("/hobbies");
+          if (window.location.pathname !== "/hobbies") {
+            window.location.replace("/hobbies");
+          }
           return;
         } else {
           sessionStorage.removeItem("just_google_signed_up");
@@ -183,6 +206,7 @@ export function AppProvider({ children }) {
 
     handleAuthInit();
   }, [refreshUser]);
+
 
   useEffect(() => {
     if (Array.isArray(hobbies) && hobbies.length > 0) {
@@ -234,9 +258,10 @@ export function AppProvider({ children }) {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
-          body: JSON.stringify({ hobbies: list }),
+          body: JSON.stringify({ hobbies: list, userId: user?.id }),
         });
       } catch (e) {
+
         // local / offline
       }
     }

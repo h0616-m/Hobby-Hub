@@ -102,8 +102,9 @@ public class SecurityConfig {
             String encodedUsername = URLEncoder.encode(actualUsername, StandardCharsets.UTF_8);
             String encodedEmail = URLEncoder.encode(email != null ? email : "", StandardCharsets.UTF_8);
 
-            // Pass user auth info in query params to make sure Vercel / cross-domain logins succeed reliably
-            response.sendRedirect(redirectBase + "/feed?user=" + encodedUsername +
+            // Send new signups directly to /hobbies and existing accounts to /feed
+            String targetPath = isNew ? "/hobbies" : "/feed";
+            response.sendRedirect(redirectBase + targetPath + "?user=" + encodedUsername +
                     "&userId=" + userId +
                     "&email=" + encodedEmail +
                     "&isAdmin=" + isAdm +
@@ -112,6 +113,7 @@ public class SecurityConfig {
                     "&accountExists=" + accountExists);
         };
     }
+
 
     @Bean
     public AuthenticationFailureHandler googleLoginFailureHandler() {

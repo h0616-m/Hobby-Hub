@@ -78,9 +78,15 @@ public class AuthController {
     @PostMapping("/hobbies")
     public ResponseEntity<?> saveHobbies(@RequestBody Map<String, Object> body, HttpSession session) {
         Long userId = (Long) session.getAttribute("userId");
+        if (userId == null && body.get("userId") != null) {
+            try {
+                userId = Long.valueOf(body.get("userId").toString());
+            } catch (Exception ignored) {}
+        }
         if (userId == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
+
         Object hobbiesObj = body.get("hobbies");
         String hobbiesStr = "";
         if (hobbiesObj instanceof java.util.List<?> list) {
