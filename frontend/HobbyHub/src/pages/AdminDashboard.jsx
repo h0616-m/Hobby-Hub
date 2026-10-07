@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import {
@@ -35,6 +35,12 @@ export default function AdminDashboard() {
   const [sortByDeleted, setSortByDeleted] = useState(false);
   const [loadingUsers, setLoadingUsers] = useState(true);
   const [actionLoadingId, setActionLoadingId] = useState(null);
+
+  // Chart.js canvas & instance references
+  const pieCanvasRef = useRef(null);
+  const barCanvasRef = useRef(null);
+  const pieChartRef = useRef(null);
+  const barChartRef = useRef(null);
 
   // Redirect non-admins safely
   useEffect(() => {
@@ -185,6 +191,155 @@ export default function AdminDashboard() {
       });
   }, [hobbiesData, totalPosts]);
 
+  // Initialize and update Chart.js instances
+  useEffect(() => {
+    if (activeTab !== 'analytics') return;
+
+    let isDestroyed = false;
+
+    const renderCharts = () => {
+      if (isDestroyed || !window.Chart) return;
+
+      if (pieChartRef.current) {
+        pieChartRef.current.destroy();
+        pieChartRef.current = null;
+      }
+      if (barChartRef.current) {
+        barChartRef.current.destroy();
+        barChartRef.current = null;
+      }
+
+      if (pieCanvasRef.current && donutSegments.length > 0) {
+        const ctx = pieCanvasRef.current.getContext('2d');
+        pieChartRef.current = new window.Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: donutSegments.map((s) => s.label),
+            datasets: [
+              {
+                data: donutSegments.map((s) => s.postVolume),
+                backgroundColor: donutSegments.map((s) => s.color || '#ff4500'),
+                borderColor: '#161b22',
+                borderWidth: 2,
+                hoverOffset: 6,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: { duration: 500 },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                backgroundColor: '#1b1e2b',
+                titleColor: '#ffffff',
+                bodyColor: '#c9d1d9',
+                borderColor: '#30363d',
+                borderWidth: 1,
+                padding: 10,
+                callbacks: {
+                  label: (context) => {
+                    const label = context.label || '';
+                    const val = context.parsed || 0;
+                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                    const pct = total > 0 ? Math.round((val / total) * 100) : 0;
+                    return ` ${label}: ${val} posts (${pct}%)`;
+                  },
+                },
+              },
+            },
+            cutout: '70%',
+          },
+        });
+      }
+
+      if (barCanvasRef.current && hobbiesData.length > 0) {
+        const ctx = barCanvasRef.current.getContext('2d');
+        barChartRef.current = new window.Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: hobbiesData.map((h) => `${h.icon} ${h.label}`),
+            datasets: [
+              {
+                label: 'Posts',
+                data: hobbiesData.map((h) => h.postVolume || 0),
+                backgroundColor: hobbiesData.map((h) => h.color || '#ff4500'),
+                borderRadius: 5,
+                borderSkipped: false,
+                barThickness: 15,
+              },
+            ],
+          },
+          options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: { duration: 500 },
+            scales: {
+              x: {
+                grid: { color: 'rgba(255, 255, 255, 0.06)' },
+                ticks: {
+                  color: '#8b949e',
+                  font: { size: 11 },
+                  stepSize: 1,
+                },
+              },
+              y: {
+                grid: { display: false },
+                ticks: {
+                  color: '#e6edf3',
+                  font: { size: 12, weight: '600' },
+                },
+              },
+            },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                backgroundColor: '#1b1e2b',
+                titleColor: '#ffffff',
+                bodyColor: '#c9d1d9',
+                borderColor: '#30363d',
+                borderWidth: 1,
+                padding: 10,
+                callbacks: {
+                  label: (context) => ` Posts: ${context.parsed.x}`,
+                },
+              },
+            },
+          },
+        });
+      }
+    };
+
+    if (window.Chart) {
+      renderCharts();
+    } else {
+      const timer = setInterval(() => {
+        if (window.Chart) {
+          clearInterval(timer);
+          renderCharts();
+        }
+      }, 100);
+      return () => {
+        clearInterval(timer);
+        isDestroyed = true;
+      };
+    }
+
+    return () => {
+      isDestroyed = true;
+      if (pieChartRef.current) {
+        pieChartRef.current.destroy();
+        pieChartRef.current = null;
+      }
+      if (barChartRef.current) {
+        barChartRef.current.destroy();
+        barChartRef.current = null;
+      }
+    };
+  }, [activeTab, donutSegments, hobbiesData]);
+
   return (
     <div className="admin-dashboard-container">
       {/* Top Header */}
@@ -274,45 +429,18 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* Visualizers Row: Donut Chart & Bar Chart */}
+          {/* Visualizers Row: Donut Chart & Bar Chart (Powered by Chart.js) */}
           <div className="admin-charts-row">
-            {/* Chart 1: Donut Chart - Post Share */}
+            {/* Chart 1: Donut Chart - Powered by Chart.js */}
             <div className="chart-card">
               <div className="chart-card-header">
-                <h3>Post Pi chart</h3>
-                <span className="chart-badge">Posts shared</span>
+                <h3>Post Pi Chart</h3>
+                <span className="chart-badge">Chart.js</span>
               </div>
 
               <div className="donut-chart-container">
                 <div className="donut-svg-wrapper">
-                  <svg width="180" height="180" viewBox="0 0 160 160">
-                    <circle
-                      cx="80"
-                      cy="80"
-                      r="60"
-                      fill="transparent"
-                      stroke="#21262d"
-                      strokeWidth="20"
-                    />
-                    {donutSegments.map((segment) => (
-                      <circle
-                        key={segment.id}
-                        cx="80"
-                        cy="80"
-                        r="60"
-                        fill="transparent"
-                        stroke={segment.color || '#ff4500'}
-                        strokeWidth="20"
-                        strokeDasharray={segment.strokeDasharray}
-                        strokeDashoffset={segment.strokeDashoffset}
-                        style={{
-                          transition: 'stroke-dasharray 0.6s ease, stroke-dashoffset 0.6s ease',
-                          transform: 'rotate(-90deg)',
-                          transformOrigin: '80px 80px',
-                        }}
-                      />
-                    ))}
-                  </svg>
+                  <canvas ref={pieCanvasRef} width="180" height="180" />
                   <div className="donut-center-label">
                     <div className="donut-center-number">{totalPosts}</div>
                     <div className="donut-center-text">Posts</div>
@@ -344,41 +472,15 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            {/* Chart 2: Bar Chart - Post Volume */}
+            {/* Chart 2: Bar Chart - Powered by Chart.js */}
             <div className="chart-card">
               <div className="chart-card-header">
                 <h3>Posts by Hobby</h3>
-                <span className="chart-badge">Posts</span>
+                <span className="chart-badge">Chart.js</span>
               </div>
 
-              <div className="bar-chart-container">
-                {hobbiesData.map((hobby) => {
-                  const widthPercent = Math.round(
-                    ((hobby.postVolume || 0) / maxPostVolume) * 100
-                  );
-                  return (
-                    <div key={hobby.id} className="bar-row">
-                      <div className="bar-row-info">
-                        <span className="bar-row-label">
-                          <span>{hobby.icon}</span>
-                          <span>{hobby.label}</span>
-                        </span>
-                        <span className="bar-row-val">
-                          {hobby.postVolume} {hobby.postVolume === 1 ? 'post' : 'posts'}
-                        </span>
-                      </div>
-                      <div className="bar-track">
-                        <div
-                          className="bar-fill"
-                          style={{
-                            width: `${widthPercent}%`,
-                            backgroundColor: hobby.color || '#ff4500',
-                          }}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
+              <div className="bar-chart-container" style={{ position: 'relative', height: '220px', width: '100%' }}>
+                <canvas ref={barCanvasRef} />
               </div>
             </div>
           </div>

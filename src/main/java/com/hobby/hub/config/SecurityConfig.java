@@ -113,10 +113,16 @@ public class SecurityConfig {
     @Bean
     public AuthenticationFailureHandler googleLoginFailureHandler() {
         return (request, response, exception) -> {
-            System.err.println("Google OAuth2 Login Failed: " + exception.getMessage());
+            System.err.println("Google OAuth2 Login Failed: " + (exception != null ? exception.getMessage() : "null"));
+            if (exception != null) {
+                exception.printStackTrace();
+            }
             String redirectBase = getRedirectBase(request);
+            String errorDetail = (exception != null && exception.getMessage() != null)
+                    ? exception.getMessage()
+                    : "Authentication failed";
             response.sendRedirect(redirectBase + "/auth?error=" +
-                    URLEncoder.encode("Google login failed. Please try again or use username/password.", StandardCharsets.UTF_8));
+                    URLEncoder.encode("Google login failed (" + errorDetail + "). Please try again or use username/password.", StandardCharsets.UTF_8));
         };
     }
 
@@ -139,6 +145,12 @@ public class SecurityConfig {
         }
         if ("localhost".equalsIgnoreCase(serverName) || "127.0.0.1".equals(serverName)) {
             return "http://localhost:3000";
+        }
+        if (referer != null && referer.contains(".vercel.app")) {
+            try {
+                java.net.URI uri = new java.net.URI(referer);
+                return uri.getScheme() + "://" + uri.getHost() + (uri.getPort() > 0 ? ":" + uri.getPort() : "");
+            } catch (Exception ignored) {}
         }
         return "https://hobby-hub-nine.vercel.app";
     }

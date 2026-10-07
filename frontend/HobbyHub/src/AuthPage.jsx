@@ -163,7 +163,13 @@ export default function AuthPage() {
             } else {
               sessionStorage.removeItem("google_desired_username");
             }
-            window.location.href = "/oauth2/authorization/google";
+            const isLocal =
+              window.location.hostname === "localhost" ||
+              window.location.hostname === "127.0.0.1";
+            const targetUrl = isLocal
+              ? "/oauth2/authorization/google"
+              : "https://hobby-hub-o8zd.onrender.com/oauth2/authorization/google";
+            window.location.href = targetUrl;
           }}
           className="btn-secondary"
           style={{
