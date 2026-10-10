@@ -434,7 +434,7 @@ export default function AdminDashboard() {
             {/* Chart 1: Donut Chart - Powered by Chart.js */}
             <div className="chart-card">
               <div className="chart-card-header">
-                <h3>Post Pi Chart</h3>
+                <h3>Post Donut Chart</h3>
                 <span className="chart-badge">Chart.js</span>
               </div>
 
